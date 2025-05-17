@@ -1,7 +1,7 @@
 package acauhi.mvc.spring.controller;
 
 import acauhi.mvc.spring.entity.User;
-import acauhi.mvc.spring.service.UserService;
+import acauhi.mvc.spring.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -15,8 +15,17 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequiredArgsConstructor
 public class AuthController {
+  private final AuthService authService;
 
-  private final UserService userService;
+  @GetMapping("/login")
+  public String login() {
+    return "login";
+  }
+
+  @GetMapping("/access-denied")
+  public String accessDenied() {
+    return "access-denied";
+  }
 
   @GetMapping("/register")
   public String showRegistrationForm(Model model) {
@@ -37,13 +46,13 @@ public class AuthController {
       return "register";
     }
 
-    if (userService.findByEmail(user.getEmail()).isPresent()) {
+    if (authService.emailExists(user.getEmail())) {
       result.rejectValue("email", "error.user", "An account already exists for this email.");
       return "register";
     }
 
     user.setUserType(User.UserType.CLIENT);
-    userService.save(user);
+    authService.registerUser(user);
 
     redirectAttributes.addFlashAttribute("successMessage", "Registration successful! You can now log in.");
     return "redirect:/login";
