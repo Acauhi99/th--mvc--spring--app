@@ -12,6 +12,7 @@ import java.util.UUID;
 @Component("securityActionChecker")
 @RequiredArgsConstructor
 public class SecurityActionChecker {
+
   private final UserService userService;
 
   public boolean isAdmin(Authentication authentication) {
