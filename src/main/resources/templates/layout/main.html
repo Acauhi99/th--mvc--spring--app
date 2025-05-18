@@ -12,93 +12,67 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
     <link rel="stylesheet" th:href="@{/styles.css}" />
   </head>
-  <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-      <div class="container">
-        <a class="navbar-brand" th:href="@{/}">Spring MVC App</a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
+  <body class="d-flex flex-column min-vh-100">
+    <div th:replace="~{common/header :: navbar}"></div>
+
+    <div class="content-wrapper flex-grow-1 py-4">
+      <div class="container-fluid px-4">
+        <div
+          th:if="${successMessage}"
+          class="alert alert-success alert-dismissible fade show"
+          role="alert"
         >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav me-auto">
-            <li class="nav-item">
-              <a class="nav-link" th:href="@{/}">Home</a>
-            </li>
-            <li class="nav-item" sec:authorize="hasAuthority('ROLE_ADMIN')">
-              <a class="nav-link" th:href="@{/users}">Users</a>
-            </li>
-          </ul>
-          <ul class="navbar-nav">
-            <li class="nav-item" sec:authorize="!isAuthenticated()">
-              <a class="nav-link" th:href="@{/login}">Login</a>
-            </li>
-            <li class="nav-item" sec:authorize="!isAuthenticated()">
-              <a class="nav-link" th:href="@{/register}">Register</a>
-            </li>
-            <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
-              <a
-                class="nav-link dropdown-toggle"
-                href="#"
-                role="button"
-                data-bs-toggle="dropdown"
-              >
-                <span sec:authentication="name">Username</span>
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end">
-                <li>
-                  <a class="dropdown-item" th:href="@{/users/profile}"
-                    >Profile</a
-                  >
-                </li>
-                <li><hr class="dropdown-divider" /></li>
-                <li>
-                  <form
-                    th:action="@{/logout}"
-                    method="post"
-                    class="dropdown-item p-0"
-                  >
-                    <button
-                      type="submit"
-                      class="btn btn-link text-decoration-none w-100 text-start px-3 py-1"
-                    >
-                      Logout
-                    </button>
-                  </form>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
-
-    <div class="content-wrapper">
-      <div class="container">
-        <div th:if="${successMessage}" class="alert alert-success" role="alert">
           <span th:text="${successMessage}"></span>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
         </div>
-        <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+        <div
+          th:if="${errorMessage}"
+          class="alert alert-danger alert-dismissible fade show"
+          role="alert"
+        >
           <span th:text="${errorMessage}"></span>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
         </div>
 
-        <div th:replace="${body}">Page content goes here</div>
+        <div class="row g-0">
+          <div class="col-md-2 pe-md-3" sec:authorize="isAuthenticated()">
+            <div th:replace="~{common/menu :: sidebar}"></div>
+          </div>
+
+          <div class="col-md-10" sec:authorize="isAuthenticated()">
+            <div th:replace="~{common/content :: wrapper(${body})}">
+              Page content goes here
+            </div>
+          </div>
+
+          <div class="col-12" sec:authorize="!isAuthenticated()">
+            <div th:replace="~{common/content :: wrapper(${body})}">
+              Page content goes here
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <footer class="footer py-3 bg-light">
-      <div class="container text-center">
-        <span class="text-muted">© 2025 Spring MVC Application</span>
-      </div>
-    </footer>
+    <div th:replace="~{common/footer :: footer}"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script th:src="@{/js/scripts.js}"></script>
+    <script th:src="@{/scripts.js}"></script>
   </body>
 </html>

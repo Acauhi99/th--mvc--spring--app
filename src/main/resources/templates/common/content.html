@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <div th:fragment="wrapper(content)" class="content-container">
+      <div th:replace="${content}"></div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{layout/main :: html(~{::title}, ~{::body})}"
+>
+  <head>
+    <title>Register</title>
+  </head>
+  <body>
+    <div class="row justify-content-center align-items-center h-100">
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Create Account</h4>
+          </div>
+          <div class="card-body p-4">
+            <form th:action="@{/register}" method="post" th:object="${user}">
+              <div class="form-floating mb-3">
+                <input
+                  type="text"
+                  id="name"
+                  th:field="*{name}"
+                  class="form-control"
+                  placeholder="Full Name"
+                  required
+                />
+                <label for="name">Full Name</label>
+                <div
+                  class="invalid-feedback"
+                  th:if="${#fields.hasErrors('name')}"
+                  th:errors="*{name}"
+                ></div>
+              </div>
+
+              <div class="form-floating mb-3">
+                <input
+                  type="email"
+                  id="email"
+                  th:field="*{email}"
+                  class="form-control"
+                  placeholder="name@example.com"
+                  required
+                />
+                <label for="email">Email</label>
+                <div
+                  class="invalid-feedback"
+                  th:if="${#fields.hasErrors('email')}"
+                  th:errors="*{email}"
+                ></div>
+              </div>
+
+              <div class="form-floating mb-3">
+                <input
+                  type="password"
+                  id="password"
+                  th:field="*{password}"
+                  class="form-control"
+                  placeholder="Password"
+                  required
+                />
+                <label for="password">Password</label>
+                <div
+                  class="invalid-feedback"
+                  th:if="${#fields.hasErrors('password')}"
+                  th:errors="*{password}"
+                ></div>
+              </div>
+
+              <input type="hidden" th:field="*{userType}" value="CLIENT" />
+
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Register</button>
+              </div>
+            </form>
+          </div>
+          <div class="card-footer bg-light text-center py-3">
+            <p class="mb-0">
+              Already have an account?
+              <a th:href="@{/login}" class="text-decoration-none">Login</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

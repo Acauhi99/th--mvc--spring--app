@@ -20,12 +20,12 @@ public class AuthController {
 
   @GetMapping("/login")
   public String login() {
-    return "login";
+    return "pages/login";
   }
 
   @GetMapping("/access-denied")
   public String accessDenied() {
-    return "access-denied";
+    return "pages/access-denied";
   }
 
   @GetMapping("/register")
@@ -35,7 +35,7 @@ public class AuthController {
       user.setUserType(User.UserType.CLIENT);
       model.addAttribute("user", user);
     }
-    return "register";
+    return "pages/register";
   }
 
   @PostMapping("/register")
@@ -44,12 +44,12 @@ public class AuthController {
       RedirectAttributes redirectAttributes) {
 
     if (result.hasErrors()) {
-      return "register";
+      return "pages/register";
     }
 
     if (authService.emailExists(user.getEmail())) {
       result.rejectValue("email", "error.user", "An account already exists for this email.");
-      return "register";
+      return "pages/register";
     }
 
     user.setUserType(User.UserType.CLIENT);

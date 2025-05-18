@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{layout/main :: html(~{::title}, ~{::body})}"
+>
+  <head>
+    <title>Login</title>
+  </head>
+  <body>
+    <div class="row justify-content-center align-items-center h-100">
+      <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Login</h4>
+          </div>
+          <div class="card-body p-4">
+            <div
+              th:if="${param.error}"
+              class="alert alert-danger alert-dismissible fade show"
+              role="alert"
+            >
+              Invalid username or password.
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div
+              th:if="${param.logout}"
+              class="alert alert-success alert-dismissible fade show"
+              role="alert"
+            >
+              You have been logged out.
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+                aria-label="Close"
+              ></button>
+            </div>
+
+            <form th:action="@{/login}" method="post">
+              <div class="form-floating mb-3">
+                <input
+                  type="email"
+                  id="username"
+                  name="username"
+                  class="form-control"
+                  placeholder="name@example.com"
+                  required
+                  autofocus
+                />
+                <label for="username">Email address</label>
+              </div>
+
+              <div class="form-floating mb-3">
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  class="form-control"
+                  placeholder="Password"
+                  required
+                />
+                <label for="password">Password</label>
+              </div>
+
+              <div class="form-check mb-3">
+                <input
+                  type="checkbox"
+                  id="remember-me"
+                  name="remember-me"
+                  class="form-check-input"
+                />
+                <label for="remember-me" class="form-check-label"
+                  >Remember me</label
+                >
+              </div>
+
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Login</button>
+              </div>
+            </form>
+          </div>
+          <div class="card-footer bg-light text-center py-3">
+            <p class="mb-0">
+              Don't have an account?
+              <a th:href="@{/register}" class="text-decoration-none"
+                >Register</a
+              >
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

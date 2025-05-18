@@ -23,7 +23,7 @@ public class UserController {
   @PreAuthorize("hasAuthority('ROLE_ADMIN')")
   public String listUsers(Model model) {
     model.addAttribute("users", userService.findAll());
-    return "users/list";
+    return "pages/users/list";
   }
 
   @GetMapping("/create")
@@ -31,7 +31,7 @@ public class UserController {
   public String createUserForm(Model model) {
     model.addAttribute("user", new User());
     model.addAttribute("userTypes", User.UserType.values());
-    return "users/form";
+    return "pages/users/form";
   }
 
   @PostMapping("/create")
@@ -50,7 +50,7 @@ public class UserController {
 
     model.addAttribute("user", user);
     model.addAttribute("userTypes", User.UserType.values());
-    return "users/form";
+    return "pages/users/form";
   }
 
   @PostMapping("/edit/{id}")
@@ -75,6 +75,6 @@ public class UserController {
     User user = userService.findByEmail(authentication.getName())
         .orElseThrow(() -> new IllegalStateException("User not found"));
     model.addAttribute("user", user);
-    return "users/profile";
+    return "pages/users/profile";
   }
 }
