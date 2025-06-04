@@ -28,7 +28,7 @@ public class DataInitializer implements CommandLineRunner {
           .name("Employee User")
           .email("employee@example.com")
           .password("password")
-          .userType(User.UserType.EMPLOYEE)
+          .userType(User.UserType.ORGANIZADOR)
           .build();
       userService.save(employee);
 
@@ -36,7 +36,7 @@ public class DataInitializer implements CommandLineRunner {
           .name("Client User")
           .email("client@example.com")
           .password("password")
-          .userType(User.UserType.CLIENT)
+          .userType(User.UserType.PARTICIPANTE)
           .build();
       userService.save(client);
 

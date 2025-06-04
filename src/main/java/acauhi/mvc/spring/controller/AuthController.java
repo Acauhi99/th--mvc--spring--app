@@ -32,7 +32,7 @@ public class AuthController {
   public String showRegistrationForm(Model model) {
     if (!model.containsAttribute("user")) {
       User user = new User();
-      user.setUserType(User.UserType.CLIENT);
+      user.setUserType(User.UserType.PARTICIPANTE);
       model.addAttribute("user", user);
     }
     return "pages/register";
@@ -52,7 +52,7 @@ public class AuthController {
       return "pages/register";
     }
 
-    user.setUserType(User.UserType.CLIENT);
+    user.setUserType(User.UserType.PARTICIPANTE);
     authService.registerUser(user);
 
     redirectAttributes.addFlashAttribute("successMessage", "Registration successful! You can now log in.");

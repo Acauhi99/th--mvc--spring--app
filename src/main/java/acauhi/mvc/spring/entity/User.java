@@ -37,6 +37,6 @@ public class User {
   private UserType userType;
 
   public enum UserType {
-    ADMIN, EMPLOYEE, CLIENT
+    ADMIN, PARTICIPANTE, ORGANIZADOR
   }
 }
