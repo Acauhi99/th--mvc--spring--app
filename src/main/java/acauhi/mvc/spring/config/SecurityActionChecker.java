@@ -2,6 +2,7 @@ package acauhi.mvc.spring.config;
 
 import acauhi.mvc.spring.entity.User;
 import acauhi.mvc.spring.service.UserService;
+import acauhi.mvc.spring.service.EventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,6 +15,7 @@ import java.util.UUID;
 public class SecurityActionChecker {
 
   private final UserService userService;
+  private final EventService eventService;
 
   public boolean isAdmin(Authentication authentication) {
     return authentication.getAuthorities()
@@ -35,13 +37,22 @@ public class SecurityActionChecker {
       return true;
     }
 
-    // Não-admins só podem modificar seus próprios perfis
     if (!isSelf(authentication, targetUserId)) {
       return false;
     }
 
     return userService.findById(targetUserId)
         .map(existingUser -> existingUser.getUserType() == user.getUserType())
+        .orElse(false);
+  }
+
+  public boolean canModifyEvent(Authentication authentication, UUID eventId) {
+    if (isAdmin(authentication)) {
+      return true;
+    }
+
+    return eventService.findById(eventId)
+        .map(event -> event.getOrganizer().getEmail().equals(authentication.getName()))
         .orElse(false);
   }
 }

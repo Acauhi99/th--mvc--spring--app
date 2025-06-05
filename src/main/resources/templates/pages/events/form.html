@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+  th:replace="~{layout/main :: html(~{::title}, ~{::body})}"
+>
+  <head>
+    <title th:text="${event.id == null ? 'Create Event' : 'Edit Event'}">Event Form</title>
+  </head>
+  <body>
+    <div class="row">
+      <div class="col-md-3">
+        <div th:replace="~{common/menu :: sidebar}"></div>
+      </div>
+      <div class="col-md-9 edit-profile-card">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <h4 class="mb-0" th:text="${event.id == null ? 'Create New Event' : 'Edit Event'}">Event Form</h4>
+          </div>
+          <div class="card-body">
+            <!-- Alert de sucesso -->
+            <div
+              th:if="${successMessage}"
+              class="alert alert-success alert-dismissible fade show"
+              role="alert"
+            >
+              <span th:text="${successMessage}"></span>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+                aria-label="Close"
+              ></button>
+            </div>
+
+            <!-- Alert de erro -->
+            <div
+              th:if="${errorMessage}"
+              class="alert alert-danger alert-dismissible fade show"
+              role="alert"
+            >
+              <span th:text="${errorMessage}"></span>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+                aria-label="Close"
+              ></button>
+            </div>
+
+            <form 
+              th:action="${event.id == null ? '/events/create' : '/events/edit/' + event.id}" 
+              th:object="${event}" 
+              method="post"
+            >
+              <div class="row">
+                <div class="col-md-8">
+                  <!-- Nome do Evento -->
+                  <div class="mb-3">
+                    <label for="name" class="form-label">Event Name</label>
+                    <input
+                      type="text"
+                      id="name"
+                      th:field="*{name}"
+                      class="form-control"
+                      placeholder="Enter the event name"
+                      required
+                    />
+                    <div class="form-text">
+                      Choose a clear and descriptive name for your event.
+                    </div>
+                  </div>
+
+                  <!-- Descrição -->
+                  <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea
+                      id="description"
+                      th:field="*{description}"
+                      class="form-control"
+                      rows="4"
+                      placeholder="Provide a detailed description of the event"
+                    ></textarea>
+                    <div class="form-text">
+                      Describe what participants can expect from this event.
+                    </div>
+                  </div>
+
+                  <!-- Tipo do Evento -->
+                  <div class="mb-3">
+                    <label for="type" class="form-label">Event Type</label>
+                    <select
+                      id="type"
+                      th:field="*{type}"
+                      class="form-control"
+                      required
+                    >
+                      <option value="">Select event type</option>
+                      <option 
+                        th:each="eventType : ${eventTypes}" 
+                        th:value="${eventType}" 
+                        th:text="${eventType.name()}"
+                      ></option>
+                    </select>
+                    <div class="form-text">
+                      Choose the category that best fits your event.
+                    </div>
+                  </div>
+
+                  <!-- Localização -->
+                  <div class="mb-3">
+                    <label for="location" class="form-label">Location</label>
+                    <input
+                      type="text"
+                      id="location"
+                      th:field="*{location}"
+                      class="form-control"
+                      placeholder="Event location or online platform"
+                      required
+                    />
+                    <div class="form-text">
+                      Specify the venue address or online meeting link.
+                    </div>
+                  </div>
+
+                  <!-- Palestrante -->
+                  <div class="mb-3">
+                    <label for="speaker" class="form-label">Speaker/Instructor</label>
+                    <input
+                      type="text"
+                      id="speaker"
+                      th:field="*{speaker}"
+                      class="form-control"
+                      placeholder="Name of the speaker or instructor"
+                    />
+                    <div class="form-text">
+                      Optional: Name of the person leading the event.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <div class="event-details-section">
+                    <!-- Data e Hora de Início -->
+                    <div class="mb-3">
+                      <label for="startDateTime" class="form-label">Start Date & Time</label>
+                      <input
+                        type="datetime-local"
+                        id="startDateTime"
+                        th:field="*{startDateTime}"
+                        class="form-control"
+                        required
+                      />
+                    </div>
+
+                    <!-- Data e Hora de Fim -->
+                    <div class="mb-3">
+                      <label for="endDateTime" class="form-label">End Date & Time</label>
+                      <input
+                        type="datetime-local"
+                        id="endDateTime"
+                        th:field="*{endDateTime}"
+                        class="form-control"
+                        required
+                      />
+                    </div>
+
+                    <!-- Total de Vagas -->
+                    <div class="mb-4">
+                      <label for="totalVacancies" class="form-label">Total Vacancies</label>
+                      <input
+                        type="number"
+                        id="totalVacancies"
+                        th:field="*{totalVacancies}"
+                        class="form-control"
+                        min="1"
+                        max="10000"
+                        placeholder="Number of available spots"
+                        required
+                      />
+                      <div class="form-text">
+                        Maximum number of participants for this event.
+                      </div>
+                    </div>
+
+                    <!-- Status do Evento (apenas para edição) -->
+                    <div class="mb-3" th:if="${event.id != null}">
+                      <label class="form-label">Event Status</label>
+                      <div class="form-control-plaintext">
+                        <span 
+                          class="badge"
+                          th:classappend="${event.active} ? 'bg-success' : 'bg-secondary'"
+                          th:text="${event.active} ? 'Active' : 'Inactive'"
+                        ></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botões de Ação -->
+              <div class="row mt-4">
+                <div class="col-12">
+                  <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                      <i class="bi bi-check-lg me-1"></i>
+                      <span th:text="${event.id == null ? 'Create Event' : 'Update Event'}">Save Event</span>
+                    </button>
+                    <a th:href="@{/events}" class="btn btn-outline-secondary">
+                      <i class="bi bi-x-lg me-1"></i>
+                      Cancel
+                    </a>
+                    <a 
+                      th:if="${event.id != null}" 
+                      th:href="@{/events/my-events}" 
+                      class="btn btn-outline-info"
+                    >
+                      <i class="bi bi-list me-1"></i>
+                      My Events
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Script para validação de datas -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const startDateTime = document.getElementById('startDateTime');
+        const endDateTime = document.getElementById('endDateTime');
+        
+        // Define data mínima como agora
+        const now = new Date();
+        const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        startDateTime.min = localDateTime;
+        
+        // Validação de data de fim
+        startDateTime.addEventListener('change', function() {
+          endDateTime.min = this.value;
+          if (endDateTime.value && endDateTime.value < this.value) {
+            endDateTime.value = '';
+          }
+        });
+        
+        endDateTime.addEventListener('change', function() {
+          if (this.value < startDateTime.value) {
+            alert('End date must be after start date');
+            this.value = '';
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

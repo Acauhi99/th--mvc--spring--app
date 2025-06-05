@@ -12,7 +12,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/events")
@@ -24,7 +27,16 @@ public class EventController {
 
   @GetMapping
   public String listEvents(Model model) {
-    model.addAttribute("events", eventService.findActiveEvents());
+    List<Event> events = eventService.findActiveEvents();
+
+    Map<UUID, Long> registrationCounts = events.stream()
+        .collect(Collectors.toMap(
+            Event::getId,
+            event -> eventService.countRegistrationsByEventId(event.getId())
+        ));
+    
+    model.addAttribute("events", events);
+    model.addAttribute("registrationCounts", registrationCounts);
     return "pages/events/list";
   }
 
@@ -43,8 +55,9 @@ public class EventController {
         .orElseThrow(() -> new IllegalStateException("Organizer not found"));
     
     event.setOrganizer(organizer);
+    event.setActive(true);
     eventService.save(event);
-    redirectAttributes.addFlashAttribute("successMessage", "Event created successfully");
+    redirectAttributes.addFlashAttribute("successMessage", "Event created successfully!");
     return "redirect:/events";
   }
 
@@ -67,8 +80,9 @@ public class EventController {
     
     event.setId(id);
     event.setOrganizer(existingEvent.getOrganizer());
+    event.setActive(existingEvent.getActive());
     eventService.save(event);
-    redirectAttributes.addFlashAttribute("successMessage", "Event updated successfully");
+    redirectAttributes.addFlashAttribute("successMessage", "Event updated successfully!");
     return "redirect:/events";
   }
 
@@ -76,7 +90,7 @@ public class EventController {
   @PreAuthorize("@securityActionChecker.canModifyEvent(authentication, #id)")
   public String deleteEvent(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
     eventService.deleteById(id);
-    redirectAttributes.addFlashAttribute("successMessage", "Event deleted successfully");
+    redirectAttributes.addFlashAttribute("successMessage", "Event deleted successfully!");
     return "redirect:/events";
   }
 
@@ -86,7 +100,17 @@ public class EventController {
     User organizer = userService.findByEmail(authentication.getName())
         .orElseThrow(() -> new IllegalStateException("User not found"));
     
-    model.addAttribute("events", eventService.findEventsByOrganizer(organizer));
+    List<Event> events = eventService.findEventsByOrganizer(organizer);
+    
+    // Adiciona contagem de registrações para cada evento
+    Map<UUID, Long> registrationCounts = events.stream()
+        .collect(Collectors.toMap(
+            Event::getId,
+            event -> eventService.countRegistrationsByEventId(event.getId())
+        ));
+    
+    model.addAttribute("events", events);
+    model.addAttribute("registrationCounts", registrationCounts);
     return "pages/events/my-events";
   }
 
