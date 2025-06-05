@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+  th:replace="~{layout/main :: html(~{::title}, ~{::body})}"
+>
+  <head>
+    <title>Edit Profile</title>
+  </head>
+  <body>
+    <div class="row">
+      <div class="col-md-3">
+        <div th:replace="~{common/menu :: sidebar}"></div>
+      </div>
+      <div class="col-md-9">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Edit Profile</h4>
+          </div>
+          <div class="card-body">
+            <form th:action="@{/users/profile/edit}" th:object="${user}" method="post">
+              <div class="row">
+                <div class="col-md-8">
+                  <div class="mb-3">
+                    <label for="name" class="form-label">Full Name</label>
+                    <input
+                      type="text"
+                      id="name"
+                      th:field="*{name}"
+                      class="form-control"
+                      placeholder="Enter your full name"
+                      required
+                    />
+                  </div>
+
+                  <div class="mb-3">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input
+                      type="email"
+                      id="email"
+                      th:field="*{email}"
+                      class="form-control"
+                      placeholder="Enter your email address"
+                      required
+                    />
+                    <div class="form-text">
+                      This will be used for login and notifications.
+                    </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label for="password" class="form-label">New Password</label>
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      class="form-control"
+                      placeholder="Leave blank to keep current password"
+                    />
+                    <div class="form-text">
+                      Leave blank if you don't want to change your password.
+                    </div>
+                  </div>
+
+                  <div class="mb-4">
+                    <label class="form-label">User Type</label>
+                    <div class="form-control-plaintext">
+                      <span 
+                        class="badge"
+                        th:classappend="${user.userType.name() == 'ADMIN'} ? 'bg-danger' : 
+                                       (${user.userType.name() == 'ORGANIZADOR'} ? 'bg-warning' : 'bg-info')"
+                        th:text="${user.userType.name()}"
+                      ></span>
+                      <small class="text-muted ms-2">
+                        Contact an administrator to change your user type.
+                      </small>
+                    </div>
+                  </div>
+
+                  <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                      <i class="bi bi-check-lg me-1"></i>
+                      Save Changes
+                    </button>
+                    <a th:href="@{/users/profile}" class="btn btn-outline-secondary">
+                      <i class="bi bi-x-lg me-1"></i>
+                      Cancel
+                    </a>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="text-center">
+                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                         style="width: 120px; height: 120px;">
+                      <i class="bi bi-person-circle" style="font-size: 4rem; color: #6c757d;"></i>
+                    </div>
+                    <p class="text-muted small">
+                      Profile pictures will be available in a future update.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

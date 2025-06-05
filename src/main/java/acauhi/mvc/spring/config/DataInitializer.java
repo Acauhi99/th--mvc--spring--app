@@ -23,10 +23,8 @@ public class DataInitializer implements CommandLineRunner {
 
   @Override
   public void run(String... args) throws Exception {
-    // Só cria dados se o banco estiver vazio
     if (userService.findAll().isEmpty()) {
       
-      // Criar usuários
       User admin = User.builder()
           .name("Admin User")
           .email("admin@example.com")
@@ -51,7 +49,6 @@ public class DataInitializer implements CommandLineRunner {
           .build();
       organizador2 = userService.save(organizador2);
 
-      // Criar participantes
       User participante1 = User.builder()
           .name("Carlos Participante")
           .email("carlos@example.com")
@@ -68,7 +65,6 @@ public class DataInitializer implements CommandLineRunner {
           .build();
       participante2 = userService.save(participante2);
 
-      // Criar eventos futuros
       Event evento1 = Event.builder()
           .name("Introdução ao Spring Boot")
           .description("Workshop prático sobre desenvolvimento com Spring Boot")
@@ -83,7 +79,6 @@ public class DataInitializer implements CommandLineRunner {
           .build();
       evento1 = eventRepository.save(evento1);
 
-      // Evento passado para teste
       Event eventoPassado = Event.builder()
           .name("Seminário de Metodologias Ágeis")
           .description("Seminário sobre Scrum, Kanban e outras metodologias")
@@ -98,7 +93,6 @@ public class DataInitializer implements CommandLineRunner {
           .build();
       eventoPassado = eventRepository.save(eventoPassado);
 
-      // Evento com poucas vagas para teste de lotação
       Event eventoLimitado = Event.builder()
           .name("Oficina de UX/UI Design")
           .description("Oficina prática de design de interfaces")
@@ -113,10 +107,8 @@ public class DataInitializer implements CommandLineRunner {
           .build();
       eventoLimitado = eventRepository.save(eventoLimitado);
 
-      // Criar registros para os eventos
       List<User> participantes = List.of(participante1, participante2);
 
-      // Registros para evento1 (Spring Boot)
       for (int i = 0; i < 2; i++) {
         Registration registration = Registration.builder()
             .event(evento1)
@@ -129,19 +121,17 @@ public class DataInitializer implements CommandLineRunner {
       }
 
 
-      // Registros para evento passado (alguns confirmados e com presença)
       for (int i = 0; i < 3; i++) {
         Registration registration = Registration.builder()
             .event(eventoPassado)
             .participant(participantes.get(i))
             .registrationDate(LocalDateTime.now().minusDays(8))
             .status(Registration.RegistrationStatus.CONFIRMADO)
-            .attended(i < 2) // Apenas 2 compareceram
+            .attended(i < 2)
             .build();
         registrationRepository.save(registration);
       }
 
-      // Quase lotar o evento limitado
       for (int i = 0; i < 4; i++) {
         Registration registration = Registration.builder()
             .event(eventoLimitado)

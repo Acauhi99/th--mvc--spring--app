@@ -77,4 +77,36 @@ public class UserController {
     model.addAttribute("user", user);
     return "pages/users/profile";
   }
+
+  @GetMapping("/profile/edit")
+  public String editProfile(Model model, Authentication authentication) {
+    User user = userService.findByEmail(authentication.getName())
+        .orElseThrow(() -> new IllegalStateException("User not found"));
+    model.addAttribute("user", user);
+    return "pages/users/profile-edit";
+  }
+
+  @PostMapping("/profile/edit")
+  public String updateProfile(@ModelAttribute User user, Authentication authentication,
+                           RedirectAttributes redirectAttributes) {
+    User currentUser = userService.findByEmail(authentication.getName())
+        .orElseThrow(() -> new IllegalStateException("User not found"));
+
+    user.setId(currentUser.getId());
+    user.setUserType(currentUser.getUserType());
+
+    userService.save(user);
+    redirectAttributes.addFlashAttribute("successMessage", "Profile updated successfully");
+    return "redirect:/users/profile";
+  }
+
+  @PostMapping("/profile/delete")
+  public String deleteProfile(Authentication authentication, RedirectAttributes redirectAttributes) {
+    User user = userService.findByEmail(authentication.getName())
+        .orElseThrow(() -> new IllegalStateException("User not found"));
+
+    userService.deleteById(user.getId());
+    redirectAttributes.addFlashAttribute("successMessage", "Account deleted successfully");
+    return "redirect:/logout";
+  }
 }

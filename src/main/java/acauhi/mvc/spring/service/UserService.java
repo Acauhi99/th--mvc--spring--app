@@ -30,7 +30,10 @@ public class UserService {
   }
 
   public User save(User user) {
-    if (user.getPassword() != null && !user.getPassword().startsWith("$2a$")) {
+    if (user.getId() != null && (user.getPassword() == null || user.getPassword().trim().isEmpty())) {
+      User existingUser = findById(user.getId()).orElseThrow();
+      user.setPassword(existingUser.getPassword());
+    } else if (user.getPassword() != null && !user.getPassword().startsWith("$2a$")) {
       user.setPassword(passwordEncoder.encode(user.getPassword()));
     }
     return userRepository.save(user);
