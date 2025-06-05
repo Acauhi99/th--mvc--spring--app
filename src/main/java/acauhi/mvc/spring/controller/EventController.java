@@ -32,9 +32,8 @@ public class EventController {
     Map<UUID, Long> registrationCounts = events.stream()
         .collect(Collectors.toMap(
             Event::getId,
-            event -> eventService.countRegistrationsByEventId(event.getId())
-        ));
-    
+            event -> eventService.countRegistrationsByEventId(event.getId())));
+
     model.addAttribute("events", events);
     model.addAttribute("registrationCounts", registrationCounts);
     return "pages/events/list";
@@ -50,10 +49,11 @@ public class EventController {
 
   @PostMapping("/create")
   @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_ORGANIZADOR')")
-  public String createEvent(@ModelAttribute Event event, Authentication authentication, RedirectAttributes redirectAttributes) {
+  public String createEvent(@ModelAttribute Event event, Authentication authentication,
+      RedirectAttributes redirectAttributes) {
     User organizer = userService.findByEmail(authentication.getName())
         .orElseThrow(() -> new IllegalStateException("Organizer not found"));
-    
+
     event.setOrganizer(organizer);
     event.setActive(true);
     eventService.save(event);
@@ -74,10 +74,11 @@ public class EventController {
 
   @PostMapping("/edit/{id}")
   @PreAuthorize("@securityActionChecker.canModifyEvent(authentication, #id)")
-  public String editEvent(@PathVariable UUID id, @ModelAttribute Event event, Authentication authentication, RedirectAttributes redirectAttributes) {
+  public String editEvent(@PathVariable UUID id, @ModelAttribute Event event, Authentication authentication,
+      RedirectAttributes redirectAttributes) {
     Event existingEvent = eventService.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Invalid event Id: " + id));
-    
+
     event.setId(id);
     event.setOrganizer(existingEvent.getOrganizer());
     event.setActive(existingEvent.getActive());
@@ -86,7 +87,7 @@ public class EventController {
     return "redirect:/events";
   }
 
-  @GetMapping("/delete/{id}")
+  @PostMapping("/delete/{id}")
   @PreAuthorize("@securityActionChecker.canModifyEvent(authentication, #id)")
   public String deleteEvent(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
     eventService.deleteById(id);
@@ -99,16 +100,15 @@ public class EventController {
   public String myEvents(Model model, Authentication authentication) {
     User organizer = userService.findByEmail(authentication.getName())
         .orElseThrow(() -> new IllegalStateException("User not found"));
-    
+
     List<Event> events = eventService.findEventsByOrganizer(organizer);
-    
+
     // Adiciona contagem de registrações para cada evento
     Map<UUID, Long> registrationCounts = events.stream()
         .collect(Collectors.toMap(
             Event::getId,
-            event -> eventService.countRegistrationsByEventId(event.getId())
-        ));
-    
+            event -> eventService.countRegistrationsByEventId(event.getId())));
+
     model.addAttribute("events", events);
     model.addAttribute("registrationCounts", registrationCounts);
     return "pages/events/my-events";
@@ -118,9 +118,9 @@ public class EventController {
   public String viewEvent(@PathVariable UUID id, Model model) {
     Event event = eventService.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Invalid event Id: " + id));
-    
+
     Long registrationsCount = eventService.countRegistrationsByEventId(id);
-    
+
     model.addAttribute("event", event);
     model.addAttribute("registrationsCount", registrationsCount);
     model.addAttribute("availableVacancies", event.getTotalVacancies() - registrationsCount.intValue());
