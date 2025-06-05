@@ -72,7 +72,7 @@
                   type="button"
                   class="btn btn-outline-danger"
                   data-bs-toggle="modal"
-                  data-bs-target="#deleteModal"
+                  data-bs-target="#deleteAccountModal"
                 >
                   <i class="bi bi-trash me-1"></i>
                   Delete Account
@@ -102,64 +102,14 @@
     </div>
 
     <div
-      class="modal fade"
-      id="deleteModal"
-      tabindex="-1"
-      aria-labelledby="deleteModalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="deleteModalLabel">
-              Confirm Account Deletion
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <div class="alert alert-warning">
-              <strong>Warning!</strong> This action cannot be undone.
-            </div>
-            <p>
-              Are you sure you want to delete your account? This will
-              permanently remove:
-            </p>
-            <ul>
-              <li>Your profile information</li>
-              <li>All your event registrations</li>
-              <li>Any events you've organized (if applicable)</li>
-            </ul>
-            <p class="mb-0">
-              You will be immediately logged out and unable to access your
-              account.
-            </p>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Cancel
-            </button>
-            <form
-              th:action="@{/users/profile/delete}"
-              method="post"
-              class="d-inline"
-            >
-              <button type="submit" class="btn btn-danger">
-                <i class="bi bi-trash me-1"></i>
-                Delete My Account
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
+      th:replace="~{common/delete-modal :: deleteModal(
+        id='deleteAccountModal',
+        title='Confirm Account Deletion',
+        message='Are you sure you want to delete your account? This will permanently remove your profile information, all your event registrations, and any events you\'ve organized (if applicable). You will be immediately logged out and unable to access your account.',
+        deleteUrl=@{/users/profile/delete},
+        itemName=null,
+        buttonText='Delete My Account'
+      )}"
+    ></div>
   </body>
 </html>
