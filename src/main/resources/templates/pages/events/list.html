@@ -8,227 +8,246 @@
     <title>All Events</title>
   </head>
   <body>
-    <div class="row">
-      <div class="col-md-3">
-        <div th:replace="~{common/menu :: sidebar}"></div>
-      </div>
-      <div class="col-md-9 edit-profile-card">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-primary text-white">
-            <div class="d-flex justify-content-between align-items-center">
-              <h4 class="mb-0">Available Events</h4>
-              <div sec:authorize="hasAnyAuthority('ROLE_ADMIN', 'ROLE_ORGANIZADOR')">
-                <a th:href="@{/events/create}" class="btn btn-outline-light btn-sm">
-                  <i class="bi bi-plus-circle me-1"></i>
-                  Create Event
-                </a>
+    <div class="edit-profile-card">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Available Events</h4>
+            <div
+              sec:authorize="hasAnyAuthority('ROLE_ADMIN', 'ROLE_ORGANIZADOR')"
+            >
+              <a
+                th:href="@{/events/create}"
+                class="btn btn-outline-light btn-sm"
+              >
+                <i class="bi bi-plus-circle me-1"></i>
+                Create Event
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div
+            th:if="${successMessage}"
+            class="alert alert-success alert-dismissible fade show"
+            role="alert"
+          >
+            <span th:text="${successMessage}"></span>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+              aria-label="Close"
+            ></button>
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input
+                  type="text"
+                  id="searchInput"
+                  class="form-control"
+                  placeholder="Search events by name, location or speaker..."
+                />
+              </div>
+            </div>
+            <div class="col-md-3">
+              <select id="typeFilter" class="form-control">
+                <option value="">All Types</option>
+                <option
+                  th:each="eventType : ${T(acauhi.mvc.spring.entity.Event.EventType).values()}"
+                  th:value="${eventType}"
+                  th:text="${eventType.name()}"
+                ></option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <select id="dateFilter" class="form-control">
+                <option value="">All Dates</option>
+                <option value="today">Today</option>
+                <option value="tomorrow">Tomorrow</option>
+                <option value="this-week">This Week</option>
+                <option value="next-week">Next Week</option>
+                <option value="this-month">This Month</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Lista de Eventos -->
+          <div class="row" id="eventsContainer">
+            <div
+              th:if="${#lists.isEmpty(events)}"
+              class="col-12 text-center py-5"
+            >
+              <div class="empty-state">
+                <i class="bi bi-calendar-x display-1 text-muted mb-3"></i>
+                <h5 class="text-muted">No events available</h5>
+                <p class="text-muted">
+                  There are currently no active events to display.
+                </p>
+                <div
+                  sec:authorize="hasAnyAuthority('ROLE_ADMIN', 'ROLE_ORGANIZADOR')"
+                >
+                  <a th:href="@{/events/create}" class="btn btn-primary mt-3">
+                    <i class="bi bi-plus-circle me-1"></i>
+                    Create First Event
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div
+              th:each="event : ${events}"
+              class="col-lg-6 col-xl-4 mb-4 event-card"
+              th:data-name="${event.name}"
+              th:data-location="${event.location}"
+              th:data-speaker="${event.speaker}"
+              th:data-type="${event.type}"
+              th:data-start-date="${event.startDateTime}"
+            >
+              <div class="card h-100 border-0 shadow-sm event-item">
+                <div class="card-header border-0 pb-0">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <span
+                      class="badge event-type-badge"
+                      th:classappend="${event.type.name() == 'PALESTRA'} ? 'bg-primary' : 
+                                     (${event.type.name() == 'CURSO'} ? 'bg-success' : 
+                                     (${event.type.name() == 'OFICINA'} ? 'bg-warning' : 
+                                     (${event.type.name() == 'FEIRA'} ? 'bg-info' : 
+                                     (${event.type.name() == 'WORKSHOP'} ? 'bg-secondary' : 'bg-dark'))))"
+                      th:text="${event.type.name()}"
+                    ></span>
+                    <div
+                      class="dropdown"
+                      sec:authorize="hasAnyAuthority('ROLE_ADMIN', 'ROLE_ORGANIZADOR')"
+                    >
+                      <button
+                        class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        th:if="${#authentication.name == event.organizer.email or #authorization.expression('hasAuthority(''ROLE_ADMIN'')')}"
+                      >
+                        <i class="bi bi-three-dots"></i>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li>
+                          <a
+                            class="dropdown-item"
+                            th:href="@{/events/edit/{id}(id=${event.id})}"
+                          >
+                            <i class="bi bi-pencil me-2"></i>Edit
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            class="dropdown-item"
+                            th:href="@{/registrations/event/{id}(id=${event.id})}"
+                          >
+                            <i class="bi bi-people me-2"></i>Registrations
+                          </a>
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                          <a
+                            class="dropdown-item text-danger"
+                            th:href="@{/events/delete/{id}(id=${event.id})}"
+                            onclick="return confirm('Are you sure you want to delete this event?')"
+                          >
+                            <i class="bi bi-trash me-2"></i>Delete
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <h5 class="card-title mb-3" th:text="${event.name}">
+                    Event Name
+                  </h5>
+
+                  <div class="event-details mb-3">
+                    <div class="detail-item">
+                      <i class="bi bi-calendar3 text-primary me-2"></i>
+                      <span
+                        th:text="${#temporals.format(event.startDateTime, 'dd/MM/yyyy HH:mm')}"
+                      ></span>
+                    </div>
+                    <div class="detail-item">
+                      <i class="bi bi-geo-alt text-danger me-2"></i>
+                      <span th:text="${event.location}">Location</span>
+                    </div>
+                    <div class="detail-item" th:if="${event.speaker}">
+                      <i class="bi bi-person-badge text-success me-2"></i>
+                      <span th:text="${event.speaker}">Speaker</span>
+                    </div>
+                    <div class="detail-item">
+                      <i class="bi bi-people text-info me-2"></i>
+                      <span>
+                        <span th:text="${registrationCounts[event.id]} ?: 0"
+                          >0</span
+                        >
+                        /
+                        <span th:text="${event.totalVacancies}">0</span>
+                        participants
+                      </span>
+                    </div>
+                  </div>
+
+                  <p
+                    class="card-text text-muted small"
+                    th:if="${event.description}"
+                    th:text="${#strings.abbreviate(event.description, 100)}"
+                  >
+                    Event description...
+                  </p>
+                </div>
+                <div class="card-footer border-0 pt-0">
+                  <div class="d-flex gap-2">
+                    <a
+                      th:href="@{/events/view/{id}(id=${event.id})}"
+                      class="btn btn-primary btn-sm flex-fill"
+                    >
+                      <i class="bi bi-eye me-1"></i>
+                      View Details
+                    </a>
+                    <button
+                      class="btn btn-outline-success btn-sm"
+                      sec:authorize="hasAuthority('ROLE_PARTICIPANTE')"
+                      onclick="registerForEvent(this)"
+                      th:data-event-id="${event.id}"
+                    >
+                      <i class="bi bi-plus-circle me-1"></i>
+                      Register
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          <div class="card-body">
-            <!-- Alert de sucesso -->
-            <div
-              th:if="${successMessage}"
-              class="alert alert-success alert-dismissible fade show"
-              role="alert"
-            >
-              <span th:text="${successMessage}"></span>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="alert"
-                aria-label="Close"
-              ></button>
-            </div>
 
-            <!-- Filtros -->
-            <div class="row mb-4">
-              <div class="col-md-6">
-                <div class="input-group">
-                  <span class="input-group-text">
-                    <i class="bi bi-search"></i>
-                  </span>
-                  <input
-                    type="text"
-                    id="searchInput"
-                    class="form-control"
-                    placeholder="Search events by name, location or speaker..."
-                  />
-                </div>
-              </div>
-              <div class="col-md-3">
-                <select id="typeFilter" class="form-control">
-                  <option value="">All Types</option>
-                  <option th:each="eventType : ${T(acauhi.mvc.spring.entity.Event.EventType).values()}" 
-                          th:value="${eventType}" 
-                          th:text="${eventType.name()}"></option>
-                </select>
-              </div>
-              <div class="col-md-3">
-                <select id="dateFilter" class="form-control">
-                  <option value="">All Dates</option>
-                  <option value="today">Today</option>
-                  <option value="tomorrow">Tomorrow</option>
-                  <option value="this-week">This Week</option>
-                  <option value="next-week">Next Week</option>
-                  <option value="this-month">This Month</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Lista de Eventos -->
-            <div class="row" id="eventsContainer">
-              <div 
-                th:if="${#lists.isEmpty(events)}" 
-                class="col-12 text-center py-5"
-              >
-                <div class="empty-state">
-                  <i class="bi bi-calendar-x display-1 text-muted mb-3"></i>
-                  <h5 class="text-muted">No events available</h5>
-                  <p class="text-muted">There are currently no active events to display.</p>
-                  <div sec:authorize="hasAnyAuthority('ROLE_ADMIN', 'ROLE_ORGANIZADOR')">
-                    <a th:href="@{/events/create}" class="btn btn-primary mt-3">
-                      <i class="bi bi-plus-circle me-1"></i>
-                      Create First Event
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              <div 
-                th:each="event : ${events}" 
-                class="col-lg-6 col-xl-4 mb-4 event-card"
-                th:data-name="${event.name}"
-                th:data-location="${event.location}"
-                th:data-speaker="${event.speaker}"
-                th:data-type="${event.type}"
-                th:data-start-date="${event.startDateTime}"
-              >
-                <div class="card h-100 border-0 shadow-sm event-item">
-                  <div class="card-header border-0 pb-0">
-                    <div class="d-flex justify-content-between align-items-start">
-                      <span 
-                        class="badge event-type-badge"
-                        th:classappend="${event.type.name() == 'PALESTRA'} ? 'bg-primary' : 
-                                       (${event.type.name() == 'CURSO'} ? 'bg-success' : 
-                                       (${event.type.name() == 'OFICINA'} ? 'bg-warning' : 
-                                       (${event.type.name() == 'FEIRA'} ? 'bg-info' : 
-                                       (${event.type.name() == 'WORKSHOP'} ? 'bg-secondary' : 'bg-dark'))))"
-                        th:text="${event.type.name()}"
-                      ></span>
-                      <div class="dropdown" sec:authorize="hasAnyAuthority('ROLE_ADMIN', 'ROLE_ORGANIZADOR')">
-                        <button 
-                          class="btn btn-sm btn-outline-secondary dropdown-toggle" 
-                          type="button" 
-                          data-bs-toggle="dropdown"
-                          th:if="${#authentication.name == event.organizer.email or #authorization.expression('hasAuthority(''ROLE_ADMIN'')')}"
-                        >
-                          <i class="bi bi-three-dots"></i>
-                        </button>
-                        <ul class="dropdown-menu">
-                          <li>
-                            <a class="dropdown-item" th:href="@{/events/edit/{id}(id=${event.id})}">
-                              <i class="bi bi-pencil me-2"></i>Edit
-                            </a>
-                          </li>
-                          <li>
-                            <a class="dropdown-item" th:href="@{/registrations/event/{id}(id=${event.id})}">
-                              <i class="bi bi-people me-2"></i>Registrations
-                            </a>
-                          </li>
-                          <li><hr class="dropdown-divider"></li>
-                          <li>
-                            <a 
-                              class="dropdown-item text-danger" 
-                              th:href="@{/events/delete/{id}(id=${event.id})}"
-                              onclick="return confirm('Are you sure you want to delete this event?')"
-                            >
-                              <i class="bi bi-trash me-2"></i>Delete
-                            </a>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="card-body">
-                    <h5 class="card-title mb-3" th:text="${event.name}">Event Name</h5>
-                    
-                    <div class="event-details mb-3">
-                      <div class="detail-item">
-                        <i class="bi bi-calendar3 text-primary me-2"></i>
-                        <span 
-                          th:text="${#temporals.format(event.startDateTime, 'dd/MM/yyyy HH:mm')}"
-                        ></span>
-                      </div>
-                      <div class="detail-item">
-                        <i class="bi bi-geo-alt text-danger me-2"></i>
-                        <span th:text="${event.location}">Location</span>
-                      </div>
-                      <div class="detail-item" th:if="${event.speaker}">
-                        <i class="bi bi-person-badge text-success me-2"></i>
-                        <span th:text="${event.speaker}">Speaker</span>
-                      </div>
-                      <div class="detail-item">
-                        <i class="bi bi-people text-info me-2"></i>
-                        <span>
-                          <span th:text="${registrationCounts[event.id]} ?: 0">0</span>
-                          / <span th:text="${event.totalVacancies}">0</span> participants
-                        </span>
-                      </div>
-                    </div>
-
-                    <p 
-                      class="card-text text-muted small" 
-                      th:if="${event.description}"
-                      th:text="${#strings.abbreviate(event.description, 100)}"
-                    >
-                      Event description...
-                    </p>
-                  </div>
-                  <div class="card-footer border-0 pt-0">
-                    <div class="d-flex gap-2">
-                      <a 
-                        th:href="@{/events/view/{id}(id=${event.id})}" 
-                        class="btn btn-primary btn-sm flex-fill"
-                      >
-                        <i class="bi bi-eye me-1"></i>
-                        View Details
-                      </a>
-                      <button 
-                        class="btn btn-outline-success btn-sm"
-                        sec:authorize="hasAuthority('ROLE_PARTICIPANTE')"
-                        onclick="registerForEvent(this)"
-                        th:data-event-id="${event.id}"
-                      >
-                        <i class="bi bi-plus-circle me-1"></i>
-                        Register
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Paginação (se necessário no futuro) -->
-            <div class="row mt-4" th:if="${#lists.size(events) > 12}">
-              <div class="col-12">
-                <nav aria-label="Events pagination">
-                  <ul class="pagination justify-content-center">
-                    <li class="page-item disabled">
-                      <span class="page-link">Previous</span>
-                    </li>
-                    <li class="page-item active">
-                      <span class="page-link">1</span>
-                    </li>
-                    <li class="page-item">
-                      <a class="page-link" href="#">2</a>
-                    </li>
-                    <li class="page-item">
-                      <a class="page-link" href="#">Next</a>
-                    </li>
-                  </ul>
-                </nav>
-              </div>
+          <!-- Paginação (se necessário no futuro) -->
+          <div class="row mt-4" th:if="${#lists.size(events) > 12}">
+            <div class="col-12">
+              <nav aria-label="Events pagination">
+                <ul class="pagination justify-content-center">
+                  <li class="page-item disabled">
+                    <span class="page-link">Previous</span>
+                  </li>
+                  <li class="page-item active">
+                    <span class="page-link">1</span>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="#">2</a>
+                  </li>
+                  <li class="page-item">
+                    <a class="page-link" href="#">Next</a>
+                  </li>
+                </ul>
+              </nav>
             </div>
           </div>
         </div>
@@ -237,12 +256,12 @@
 
     <!-- JavaScript para filtros e busca -->
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const searchInput = document.getElementById('searchInput');
-        const typeFilter = document.getElementById('typeFilter');
-        const dateFilter = document.getElementById('dateFilter');
-        const eventsContainer = document.getElementById('eventsContainer');
-        const eventCards = document.querySelectorAll('.event-card');
+      document.addEventListener("DOMContentLoaded", function () {
+        const searchInput = document.getElementById("searchInput");
+        const typeFilter = document.getElementById("typeFilter");
+        const dateFilter = document.getElementById("dateFilter");
+        const eventsContainer = document.getElementById("eventsContainer");
+        const eventCards = document.querySelectorAll(".event-card");
 
         function filterEvents() {
           const searchTerm = searchInput.value.toLowerCase();
@@ -250,18 +269,19 @@
           const selectedDate = dateFilter.value;
           let visibleCount = 0;
 
-          eventCards.forEach(card => {
+          eventCards.forEach((card) => {
             const name = card.dataset.name.toLowerCase();
             const location = card.dataset.location.toLowerCase();
-            const speaker = (card.dataset.speaker || '').toLowerCase();
+            const speaker = (card.dataset.speaker || "").toLowerCase();
             const type = card.dataset.type;
             const startDate = new Date(card.dataset.startDate);
             const now = new Date();
 
             // Filtro de busca
-            const matchesSearch = name.includes(searchTerm) || 
-                                location.includes(searchTerm) || 
-                                speaker.includes(searchTerm);
+            const matchesSearch =
+              name.includes(searchTerm) ||
+              location.includes(searchTerm) ||
+              speaker.includes(searchTerm);
 
             // Filtro de tipo
             const matchesType = !selectedType || type === selectedType;
@@ -275,60 +295,65 @@
               eventDate.setHours(0, 0, 0, 0);
 
               switch (selectedDate) {
-                case 'today':
+                case "today":
                   matchesDate = eventDate.getTime() === today.getTime();
                   break;
-                case 'tomorrow':
+                case "tomorrow":
                   const tomorrow = new Date(today);
                   tomorrow.setDate(tomorrow.getDate() + 1);
                   matchesDate = eventDate.getTime() === tomorrow.getTime();
                   break;
-                case 'this-week':
+                case "this-week":
                   const endOfWeek = new Date(today);
                   endOfWeek.setDate(today.getDate() + (6 - today.getDay()));
                   matchesDate = eventDate >= today && eventDate <= endOfWeek;
                   break;
-                case 'next-week':
+                case "next-week":
                   const startOfNextWeek = new Date(today);
-                  startOfNextWeek.setDate(today.getDate() + (7 - today.getDay()));
+                  startOfNextWeek.setDate(
+                    today.getDate() + (7 - today.getDay())
+                  );
                   const endOfNextWeek = new Date(startOfNextWeek);
                   endOfNextWeek.setDate(startOfNextWeek.getDate() + 6);
-                  matchesDate = eventDate >= startOfNextWeek && eventDate <= endOfNextWeek;
+                  matchesDate =
+                    eventDate >= startOfNextWeek && eventDate <= endOfNextWeek;
                   break;
-                case 'this-month':
-                  matchesDate = eventDate.getMonth() === today.getMonth() && 
-                               eventDate.getFullYear() === today.getFullYear();
+                case "this-month":
+                  matchesDate =
+                    eventDate.getMonth() === today.getMonth() &&
+                    eventDate.getFullYear() === today.getFullYear();
                   break;
               }
             }
 
             const shouldShow = matchesSearch && matchesType && matchesDate;
-            card.style.display = shouldShow ? 'block' : 'none';
-            
+            card.style.display = shouldShow ? "block" : "none";
+
             if (shouldShow) visibleCount++;
           });
 
-          const emptyState = document.querySelector('.empty-state');
+          const emptyState = document.querySelector(".empty-state");
           if (emptyState) {
-            emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+            emptyState.style.display = visibleCount === 0 ? "block" : "none";
           }
         }
 
-        searchInput.addEventListener('input', filterEvents);
-        typeFilter.addEventListener('change', filterEvents);
-        dateFilter.addEventListener('change', filterEvents);
+        searchInput.addEventListener("input", filterEvents);
+        typeFilter.addEventListener("change", filterEvents);
+        dateFilter.addEventListener("change", filterEvents);
       });
 
       function registerForEvent(button) {
-        const eventId = button.dataset.eventId;  
+        const eventId = button.dataset.eventId;
 
-        if (confirm('Do you want to register for this event?')) {
-          button.innerHTML = '<i class="bi bi-check-circle me-1"></i>Registered';
-          button.classList.remove('btn-outline-success');
-          button.classList.add('btn-success');
+        if (confirm("Do you want to register for this event?")) {
+          button.innerHTML =
+            '<i class="bi bi-check-circle me-1"></i>Registered';
+          button.classList.remove("btn-outline-success");
+          button.classList.add("btn-success");
           button.disabled = true;
 
-          console.log('Registering for event:', eventId);
+          console.log("Registering for event:", eventId);
         }
       }
     </script>

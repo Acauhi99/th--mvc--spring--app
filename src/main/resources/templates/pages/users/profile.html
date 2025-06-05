@@ -8,93 +8,91 @@
     <title>My Profile</title>
   </head>
   <body>
-    <div class="row">
-      <div class="col-md-3">
-        <div th:replace="~{common/menu :: sidebar}"></div>
-      </div>
-      <div class="col-md-9 edit-profile-card">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">My Profile</h4>
+    <div class="edit-profile-card">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">My Profile</h4>
+        </div>
+        <div class="card-body">
+          <div
+            th:if="${successMessage}"
+            class="alert alert-success alert-dismissible fade show"
+            role="alert"
+          >
+            <span th:text="${successMessage}"></span>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+              aria-label="Close"
+            ></button>
           </div>
-          <div class="card-body">
-            <div
-              th:if="${successMessage}"
-              class="alert alert-success alert-dismissible fade show"
-              role="alert"
-            >
-              <span th:text="${successMessage}"></span>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="alert"
-                aria-label="Close"
-              ></button>
-            </div>
 
-            <div class="row">
-              <div class="col-md-8">
-                <div class="mb-4">
-                  <h5 class="text-muted mb-3">Personal Information</h5>
-                  <div class="row mb-3">
-                    <div class="col-sm-3">
-                      <strong>Name:</strong>
-                    </div>
-                    <div class="col-sm-9">
-                      <span th:text="${user.name}"></span>
-                    </div>
+          <div class="row">
+            <div class="col-md-8">
+              <div class="mb-4">
+                <h5 class="text-muted mb-3">Personal Information</h5>
+                <div class="row mb-3">
+                  <div class="col-sm-3">
+                    <strong>Name:</strong>
                   </div>
-                  <div class="row mb-3">
-                    <div class="col-sm-3">
-                      <strong>Email:</strong>
-                    </div>
-                    <div class="col-sm-9">
-                      <span th:text="${user.email}"></span>
-                    </div>
-                  </div>
-                  <div class="row mb-3">
-                    <div class="col-sm-3">
-                      <strong>User Type:</strong>
-                    </div>
-                    <div class="col-sm-9">
-                      <span 
-                        class="badge"
-                        th:classappend="${user.userType.name() == 'ADMIN'} ? 'bg-danger' : 
-                                       (${user.userType.name() == 'ORGANIZADOR'} ? 'bg-warning' : 'bg-info')"
-                        th:text="${user.userType.name()}"
-                      ></span>
-                    </div>
+                  <div class="col-sm-9">
+                    <span th:text="${user.name}"></span>
                   </div>
                 </div>
-
-                <div class="d-flex gap-2">
-                  <a 
-                    th:href="@{/users/profile/edit}" 
-                    class="btn btn-primary"
-                  >
-                    <i class="bi bi-pencil-square me-1"></i>
-                    Edit Profile
-                  </a>
-                  <button 
-                    type="button" 
-                    class="btn btn-outline-danger"
-                    data-bs-toggle="modal"
-                    data-bs-target="#deleteModal"
-                  >
-                    <i class="bi bi-trash me-1"></i>
-                    Delete Account
-                  </button>
+                <div class="row mb-3">
+                  <div class="col-sm-3">
+                    <strong>Email:</strong>
+                  </div>
+                  <div class="col-sm-9">
+                    <span th:text="${user.email}"></span>
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <div class="col-sm-3">
+                    <strong>User Type:</strong>
+                  </div>
+                  <div class="col-sm-9">
+                    <span
+                      class="badge"
+                      th:classappend="${user.userType.name() == 'ADMIN'} ? 'bg-danger' : 
+                                     (${user.userType.name() == 'ORGANIZADOR'} ? 'bg-warning' : 'bg-info')"
+                      th:text="${user.userType.name()}"
+                    ></span>
+                  </div>
                 </div>
               </div>
-              <div class="col-md-4">
-                <div class="avatar-section">
-                  <div class="avatar-container mb-3" style="width: 120px; height: 120px;">
-                    <i class="bi bi-person-circle" style="font-size: 4rem; color: #6c757d;"></i>
-                  </div>
-                  <div class="avatar-info">
-                    <h6 class="mb-1" th:text="${user.name}"></h6>
-                    <small class="text-muted" th:text="${user.email}"></small>
-                  </div>
+
+              <div class="d-flex gap-2">
+                <a th:href="@{/users/profile/edit}" class="btn btn-primary">
+                  <i class="bi bi-pencil-square me-1"></i>
+                  Edit Profile
+                </a>
+                <button
+                  type="button"
+                  class="btn btn-outline-danger"
+                  data-bs-toggle="modal"
+                  data-bs-target="#deleteModal"
+                >
+                  <i class="bi bi-trash me-1"></i>
+                  Delete Account
+                </button>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="avatar-section">
+                <div
+                  class="avatar-container mb-3"
+                  style="width: 120px; height: 120px"
+                >
+                  <i
+                    class="bi bi-person-circle"
+                    style="font-size: 4rem; color: #6c757d"
+                  ></i>
+                </div>
+                <div class="avatar-info">
+                  <h6 class="mb-1" th:text="${user.name}"></h6>
+                  <small class="text-muted" th:text="${user.email}"></small>
                 </div>
               </div>
             </div>
@@ -103,29 +101,57 @@
       </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="deleteModal"
+      tabindex="-1"
+      aria-labelledby="deleteModalLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="deleteModalLabel">Confirm Account Deletion</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <h5 class="modal-title" id="deleteModalLabel">
+              Confirm Account Deletion
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
           <div class="modal-body">
             <div class="alert alert-warning">
               <strong>Warning!</strong> This action cannot be undone.
             </div>
-            <p>Are you sure you want to delete your account? This will permanently remove:</p>
+            <p>
+              Are you sure you want to delete your account? This will
+              permanently remove:
+            </p>
             <ul>
               <li>Your profile information</li>
               <li>All your event registrations</li>
               <li>Any events you've organized (if applicable)</li>
             </ul>
-            <p class="mb-0">You will be immediately logged out and unable to access your account.</p>
+            <p class="mb-0">
+              You will be immediately logged out and unable to access your
+              account.
+            </p>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <form th:action="@{/users/profile/delete}" method="post" class="d-inline">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <form
+              th:action="@{/users/profile/delete}"
+              method="post"
+              class="d-inline"
+            >
               <button type="submit" class="btn btn-danger">
                 <i class="bi bi-trash me-1"></i>
                 Delete My Account
