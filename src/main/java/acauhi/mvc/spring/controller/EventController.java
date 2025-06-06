@@ -12,6 +12,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -101,16 +102,25 @@ public class EventController {
     User organizer = userService.findByEmail(authentication.getName())
         .orElseThrow(() -> new IllegalStateException("User not found"));
 
-    List<Event> events = eventService.findEventsByOrganizer(organizer);
+    List<Event> events = eventService.findEventsByOrganizerId(organizer.getId());
 
-    // Adiciona contagem de registrações para cada evento
     Map<UUID, Long> registrationCounts = events.stream()
         .collect(Collectors.toMap(
             Event::getId,
             event -> eventService.countRegistrationsByEventId(event.getId())));
 
+    long totalUpcomingEvents = events.stream()
+        .filter(event -> event.getStartDateTime().isAfter(LocalDateTime.now()))
+        .count();
+
+    long totalRegistrations = registrationCounts.values().stream()
+        .mapToLong(Long::longValue)
+        .sum();
+
     model.addAttribute("events", events);
     model.addAttribute("registrationCounts", registrationCounts);
+    model.addAttribute("totalUpcomingEvents", totalUpcomingEvents);
+    model.addAttribute("totalRegistrations", totalRegistrations);
     return "pages/events/my-events";
   }
 

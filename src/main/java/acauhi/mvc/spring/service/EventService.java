@@ -26,7 +26,7 @@ public class EventService {
   }
 
   public List<Event> findEventsByOrganizer(User organizer) {
-    return eventRepository.findByOrganizerAndActiveTrue(organizer);
+    return eventRepository.findEventsByOrganizerId(organizer.getId());
   }
 
   public List<Event> findEventsByOrganizerId(UUID organizerId) {
