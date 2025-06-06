@@ -31,11 +31,12 @@ public class SecurityConfig {
         .authorizeHttpRequests(authorize -> authorize
             .requestMatchers("/css/**", "/js/**", "/images/**", "/styles.css").permitAll()
             .requestMatchers("/", "/login", "/register", "/error").permitAll()
-            .requestMatchers("/users").hasAuthority("ROLE_ADMIN")
+            .requestMatchers("/users/dashboard").hasAuthority("ROLE_ADMIN")
             .requestMatchers("/users/create").hasAuthority("ROLE_ADMIN")
             .requestMatchers("/users/edit/**").authenticated()
             .requestMatchers("/users/delete/**").hasAuthority("ROLE_ADMIN")
             .requestMatchers("/users/profile/**").authenticated()
+            .requestMatchers("/users/settings").authenticated()
             .requestMatchers("/events").permitAll()
             .requestMatchers("/events/view/**").permitAll()
             .requestMatchers("/events/create").hasAnyAuthority("ROLE_ADMIN", "ROLE_ORGANIZADOR")
@@ -43,6 +44,7 @@ public class SecurityConfig {
             .requestMatchers("/events/delete/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_ORGANIZADOR")
             .requestMatchers("/events/my-events").hasAnyAuthority("ROLE_ADMIN", "ROLE_ORGANIZADOR")
             .requestMatchers("/registrations/**").authenticated()
+            .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
             .anyRequest().authenticated())
         .formLogin(form -> form
             .loginPage("/login")

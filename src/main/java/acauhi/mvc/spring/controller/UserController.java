@@ -10,7 +10,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/users")
@@ -18,13 +21,6 @@ import java.util.UUID;
 public class UserController {
 
   private final UserService userService;
-
-  @GetMapping
-  @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-  public String listUsers(Model model) {
-    model.addAttribute("users", userService.findAll());
-    return "pages/users/list";
-  }
 
   @GetMapping("/create")
   @PreAuthorize("hasAuthority('ROLE_ADMIN')")
@@ -39,7 +35,7 @@ public class UserController {
   public String createUser(@ModelAttribute User user, RedirectAttributes redirectAttributes) {
     userService.save(user);
     redirectAttributes.addFlashAttribute("successMessage", "User created successfully");
-    return "redirect:/users";
+    return "redirect:/users/dashboard";
   }
 
   @GetMapping("/edit/{id}")
@@ -59,7 +55,7 @@ public class UserController {
     user.setId(id);
     userService.save(user);
     redirectAttributes.addFlashAttribute("successMessage", "User updated successfully");
-    return "redirect:/users";
+    return "redirect:/users/dashboard";
   }
 
   @GetMapping("/delete/{id}")
@@ -67,7 +63,7 @@ public class UserController {
   public String deleteUser(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
     userService.deleteById(id);
     redirectAttributes.addFlashAttribute("successMessage", "User deleted successfully");
-    return "redirect:/users";
+    return "redirect:/users/dashboard";
   }
 
   @GetMapping("/profile")
@@ -108,5 +104,26 @@ public class UserController {
     userService.deleteById(user.getId());
     redirectAttributes.addFlashAttribute("successMessage", "Account deleted successfully");
     return "redirect:/logout";
+  }
+
+  @GetMapping("/dashboard")
+  @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+  public String dashboard(Model model) {
+    List<User> users = userService.findAll();
+    
+    Map<User.UserType, Long> userTypeCount = users.stream()
+        .collect(Collectors.groupingBy(User::getUserType, Collectors.counting()));
+    
+    List<User> recentUsers = users.stream()
+        .sorted((u1, u2) -> u2.getId().compareTo(u1.getId()))
+        .limit(6)
+        .collect(Collectors.toList());
+    
+    model.addAttribute("users", users);
+    model.addAttribute("recentUsers", recentUsers);
+    model.addAttribute("totalUsers", users.size());
+    model.addAttribute("userTypeCount", userTypeCount);
+    
+    return "pages/users/dashboard";
   }
 }

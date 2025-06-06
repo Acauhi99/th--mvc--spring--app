@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+  th:replace="~{layout/main :: html(~{::title}, ~{::body})}"
+>
+  <head>
+    <title>Users Management Dashboard</title>
+  </head>
+  <body>
+    <div class="edit-profile-card">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+              <i class="bi bi-speedometer2 me-2"></i>
+              Users Management Dashboard
+            </h4>
+            <div>
+              <a
+                th:href="@{/users/create}"
+                class="btn btn-outline-light btn-sm"
+              >
+                <i class="bi bi-person-plus me-1"></i>
+                Add New User
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div
+            th:if="${successMessage}"
+            class="alert alert-success alert-dismissible fade show"
+            role="alert"
+          >
+            <span th:text="${successMessage}"></span>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+              aria-label="Close"
+            ></button>
+          </div>
+
+          <!-- Estatísticas Gerais -->
+          <div class="row mb-4">
+            <div class="col-md-3">
+              <div class="card bg-light border-0 shadow-sm stats-card">
+                <div class="card-body text-center">
+                  <div class="stats-icon bg-primary mb-2">
+                    <i class="bi bi-people text-white"></i>
+                  </div>
+                  <h3 class="text-primary mb-1" th:text="${totalUsers}">0</h3>
+                  <small class="text-muted">Total Users</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card bg-light border-0 shadow-sm stats-card">
+                <div class="card-body text-center">
+                  <div class="stats-icon bg-success mb-2">
+                    <i class="bi bi-shield-check text-white"></i>
+                  </div>
+                  <h3 class="text-success mb-1" th:text="${userTypeCount['ADMIN']} ?: 0">0</h3>
+                  <small class="text-muted">Administrators</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card bg-light border-0 shadow-sm stats-card">
+                <div class="card-body text-center">
+                  <div class="stats-icon bg-warning mb-2">
+                    <i class="bi bi-calendar-event text-white"></i>
+                  </div>
+                  <h3 class="text-warning mb-1" th:text="${userTypeCount['ORGANIZADOR']} ?: 0">0</h3>
+                  <small class="text-muted">Organizers</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card bg-light border-0 shadow-sm stats-card">
+                <div class="card-body text-center">
+                  <div class="stats-icon bg-info mb-2">
+                    <i class="bi bi-person text-white"></i>
+                  </div>
+                  <h3 class="text-info mb-1" th:text="${userTypeCount['PARTICIPANTE']} ?: 0">0</h3>
+                  <small class="text-muted">Participants</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filtros e Busca - Simples -->
+          <div class="row mb-4">
+            <div class="col-md-8">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input
+                  type="text"
+                  id="searchInput"
+                  class="form-control"
+                  placeholder="Search users by name or email..."
+                  onkeyup="filterUsers()"
+                />
+              </div>
+            </div>
+            <div class="col-md-4">
+              <select id="typeFilter" class="form-control" onchange="filterUsers()">
+                <option value="">All User Types</option>
+                <option value="ADMIN">Administrators</option>
+                <option value="ORGANIZADOR">Organizers</option>
+                <option value="PARTICIPANTE">Participants</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Usuários Recentes -->
+          <div class="row mb-4" th:if="${!#lists.isEmpty(recentUsers)}">
+            <div class="col-12">
+              <div class="card bg-light border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                  <h6 class="mb-0 text-primary">
+                    <i class="bi bi-clock-history me-2"></i>
+                    Recent Users
+                  </h6>
+                </div>
+                <div class="card-body pt-0">
+                  <div class="row">
+                    <div
+                      th:each="user : ${recentUsers}"
+                      class="col-lg-2 col-md-4 col-sm-6 mb-3"
+                    >
+                      <div class="recent-user-card">
+                        <div class="user-avatar">
+                          <i class="bi bi-person-circle"></i>
+                        </div>
+                        <div class="user-info">
+                          <h6 class="user-name" th:text="${#strings.abbreviate(user.name, 20)}">User Name</h6>
+                          <span 
+                            class="user-type-badge"
+                            th:classappend="${user.userType.name() == 'ADMIN'} ? 'badge-admin' : 
+                                           (${user.userType.name() == 'ORGANIZADOR'} ? 'badge-organizer' : 'badge-participant')"
+                            th:text="${user.userType.name()}"
+                          ></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lista Completa de Usuários -->
+          <div class="row">
+            <div class="col-12">
+              <div class="card bg-light border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                  <h6 class="mb-0 text-primary">
+                    <i class="bi bi-people me-2"></i>
+                    All Users (<span id="visibleCount" th:text="${totalUsers}">0</span>)
+                  </h6>
+                </div>
+                <div class="card-body pt-0">
+                  <div class="table-responsive">
+                    <table class="table table-hover users-table">
+                      <thead class="table-light">
+                        <tr>
+                          <th>User</th>
+                          <th>Email</th>
+                          <th>Type</th>
+                          <th class="text-center">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="usersTableBody">
+                        <tr
+                          th:each="user : ${users}"
+                          class="user-row"
+                          th:data-name="${user.name}"
+                          th:data-email="${user.email}"
+                          th:data-type="${user.userType}"
+                        >
+                          <td>
+                            <div class="d-flex align-items-center">
+                              <div class="user-avatar-small me-3">
+                                <i class="bi bi-person-circle"></i>
+                              </div>
+                              <div>
+                                <div class="fw-semibold" th:text="${user.name}">User Name</div>
+                                <small class="text-muted">ID: <span th:text="${#strings.substring(user.id.toString(), 0, 8)}">12345678</span></small>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <span th:text="${user.email}">user@email.com</span>
+                          </td>
+                          <td>
+                            <span 
+                              class="badge user-type-badge"
+                              th:classappend="${user.userType.name() == 'ADMIN'} ? 'badge-admin' : 
+                                             (${user.userType.name() == 'ORGANIZADOR'} ? 'badge-organizer' : 'badge-participant')"
+                              th:text="${user.userType.name()}"
+                            ></span>
+                          </td>
+                          <td class="text-center">
+                            <div class="btn-group btn-group-sm">
+                              <a
+                                th:href="@{/users/edit/{id}(id=${user.id})}"
+                                class="btn btn-outline-primary btn-sm"
+                                title="Edit User"
+                              >
+                                <i class="bi bi-pencil"></i>
+                              </a>
+                              <button
+                                th:if="${user.userType.name() != 'ADMIN' || userTypeCount['ADMIN'] > 1}"
+                                class="btn btn-outline-danger btn-sm"
+                                title="Delete User"
+                                data-bs-toggle="modal"
+                                th:data-bs-target="'#deleteUserModal' + ${user.id}"
+                              >
+                                <i class="bi bi-trash"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Navegação -->
+          <div class="row mt-4">
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <span class="text-muted">
+                    Total: <span th:text="${totalUsers}">0</span> users
+                  </span>
+                </div>
+                <div>
+                  <a th:href="@{/users/create}" class="btn btn-primary">
+                    <i class="bi bi-person-plus me-1"></i>
+                    Add New User
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modais de Deleção para cada usuário -->
+    <div th:each="user : ${users}">
+      <div th:replace="~{common/delete-modal :: deleteModal(
+        id='deleteUserModal' + ${user.id},
+        title='Delete User',
+        message='Are you sure you want to delete this user? All related data will be permanently removed.',
+        deleteUrl='/users/delete/' + ${user.id},
+        itemName=${user.name} + ' (' + ${user.email} + ')',
+        buttonText='Delete User'
+      )}"></div>
+    </div>
+
+    <!-- JavaScript Mínimo -->
+    <script>
+      function filterUsers() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const selectedType = document.getElementById('typeFilter').value;
+        const rows = document.querySelectorAll('.user-row');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+          const name = row.dataset.name.toLowerCase();
+          const email = row.dataset.email.toLowerCase();
+          const type = row.dataset.type;
+
+          const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm);
+          const matchesType = !selectedType || type === selectedType;
+
+          if (matchesSearch && matchesType) {
+            row.style.display = '';
+            visibleCount++;
+          } else {
+            row.style.display = 'none';
+          }
+        });
+
+        document.getElementById('visibleCount').textContent = visibleCount;
+      }
+    </script>
+  </body>
+</html>
