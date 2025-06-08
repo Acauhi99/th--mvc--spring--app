@@ -55,4 +55,12 @@ public class SecurityActionChecker {
         .map(event -> event.getOrganizer().getEmail().equals(authentication.getName()))
         .orElse(false);
   }
+
+  public boolean canDeleteUser(Authentication authentication, UUID userId) {
+    if (isAdmin(authentication)) {
+      return true;
+    }
+    
+    return isSelf(authentication, userId);
+  }
 }

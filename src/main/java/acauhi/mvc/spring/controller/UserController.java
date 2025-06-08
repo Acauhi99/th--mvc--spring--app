@@ -57,13 +57,28 @@ public class UserController {
     redirectAttributes.addFlashAttribute("successMessage", "User updated successfully");
     return "redirect:/users/dashboard";
   }
+  
+  @PostMapping("/delete/{id}")
+  @PreAuthorize("@securityActionChecker.canDeleteUser(authentication, #id)")
+  public String deleteUser(@PathVariable UUID id, RedirectAttributes redirectAttributes, Authentication authentication) {
+    try {
+      User currentUser = userService.findByEmail(authentication.getName())
+          .orElseThrow(() -> new IllegalStateException("User not found"));
 
-  @GetMapping("/delete/{id}")
-  @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-  public String deleteUser(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
-    userService.deleteById(id);
-    redirectAttributes.addFlashAttribute("successMessage", "User deleted successfully");
-    return "redirect:/users/dashboard";
+      boolean isSelfDelete = currentUser.getId().equals(id);
+      
+      userService.deleteById(id);
+      redirectAttributes.addFlashAttribute("successMessage", "User deleted successfully");
+      
+      if (isSelfDelete) {
+        return "redirect:/logout";
+      }
+      
+      return "redirect:/users/dashboard";
+    } catch (Exception e) {
+      redirectAttributes.addFlashAttribute("errorMessage", "Error deleting user: " + e.getMessage());
+      return "redirect:/users/dashboard";
+    }
   }
 
   @GetMapping("/profile")
