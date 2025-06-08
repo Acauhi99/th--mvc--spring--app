@@ -46,12 +46,6 @@
             <i class="bi bi-bookmark-star me-2"></i> My Registrations
           </a>
         </div>
-        <a
-          th:href="@{/users/settings}"
-          class="list-group-item list-group-item-action py-2"
-        >
-          <i class="bi bi-gear me-2"></i> Settings
-        </a>
         <div sec:authorize="hasAuthority('ROLE_ADMIN')">
           <div class="dropdown-divider my-2"></div>
           <h6
@@ -70,12 +64,6 @@
             class="list-group-item list-group-item-action py-2"
           >
             <i class="bi bi-clipboard-check me-2"></i> All Registrations
-          </a>
-          <a
-            th:href="@{/admin/settings}"
-            class="list-group-item list-group-item-action py-2"
-          >
-            <i class="bi bi-sliders me-2"></i> System Settings
           </a>
         </div>
       </div>
