@@ -14,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
 import java.util.UUID;
 
 @Controller
@@ -94,8 +95,66 @@ public class RegistrationController {
   public String registrationsByEvent(@PathVariable UUID eventId, Model model) {
     Event event = eventService.findById(eventId)
         .orElseThrow(() -> new IllegalArgumentException("Invalid event Id: " + eventId));
+    
+    List<Registration> registrations = registrationService.findByEvent(event);
+    
+    // Calcular estatísticas
+    long confirmedCount = registrations.stream()
+        .filter(r -> r.getStatus() == Registration.RegistrationStatus.CONFIRMADO)
+        .count();
+    
+    long pendingCount = registrations.stream()
+        .filter(r -> r.getStatus() == Registration.RegistrationStatus.INSCRITO)
+        .count();
+    
     model.addAttribute("event", event);
-    model.addAttribute("registrations", registrationService.findByEvent(event));
+    model.addAttribute("registrations", registrations);
+    model.addAttribute("confirmedCount", confirmedCount);
+    model.addAttribute("pendingCount", pendingCount);
+    
     return "pages/registrations/by-event";
+  }
+
+  @PostMapping("/confirm/{id}")
+  @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_ORGANIZADOR')")
+  public String confirmRegistration(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
+    Registration registration = registrationService.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid registration Id: " + id));
+    
+    registration.setStatus(Registration.RegistrationStatus.CONFIRMADO);
+    registrationService.save(registration);
+    
+    redirectAttributes.addFlashAttribute("successMessage", "Registration confirmed successfully!");
+    return "redirect:/registrations/event/" + registration.getEvent().getId();
+  }
+
+  @PostMapping("/cancel/{id}")
+  @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_ORGANIZADOR')")
+  public String cancelRegistration(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
+    Registration registration = registrationService.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid registration Id: " + id));
+    
+    registration.setStatus(Registration.RegistrationStatus.CANCELADO);
+    registrationService.save(registration);
+    
+    redirectAttributes.addFlashAttribute("successMessage", "Registration cancelled successfully!");
+    return "redirect:/registrations/event/" + registration.getEvent().getId();
+  }
+
+  @PostMapping("/toggle-attendance/{id}")
+  @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_ORGANIZADOR')")
+  public String toggleAttendance(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
+    Registration registration = registrationService.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid registration Id: " + id));
+    
+    registration.setAttended(!registration.getAttended());
+    registrationService.save(registration);
+    
+    String message = registration.getAttended() ? 
+        "Participant marked as present!" : 
+        "Participant marked as absent!";
+    
+    redirectAttributes.addFlashAttribute("successMessage", message);
+    return "redirect:/registrations/event/" + registration.getEvent().getId();
   }
 }

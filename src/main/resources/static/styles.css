@@ -1188,3 +1188,58 @@ body {
     transform: scale3d(1, 1, 1);
   }
 }
+
+/* REGISTRATIONS SPECIFIC STYLES */
+.registration-status-badge {
+  font-size: 0.75rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.registration-row {
+  transition: all 0.3s ease;
+}
+
+.registration-row:hover {
+  background: rgba(var(--bs-primary-rgb), 0.03);
+  transform: translateX(3px);
+}
+
+.empty-state {
+  padding: 3rem 2rem;
+}
+
+.empty-state i {
+  opacity: 0.7;
+}
+
+/* Status filter styling */
+#statusFilter {
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+}
+
+#statusFilter:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  outline: none;
+}
+
+/* Dropdown actions in table */
+.dropdown-menu .dropdown-item {
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.dropdown-menu .dropdown-item:hover {
+  background: rgba(var(--bs-primary-rgb), 0.05);
+  transform: translateX(5px);
+}
+
+.dropdown-menu .dropdown-item.text-danger:hover {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545 !important;
+}
