@@ -27,9 +27,31 @@ public class RegistrationController {
   private final UserService userService;
 
   @GetMapping
-  @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_ORGANIZADOR')")
+  @PreAuthorize("hasAuthority('ROLE_ADMIN')")
   public String listRegistrations(Model model) {
-    model.addAttribute("registrations", registrationService.findAll());
+    List<Registration> registrations = registrationService.findAll();
+    // Mudança aqui: buscar todos os eventos do sistema em vez de apenas os ativos
+    List<Event> events = eventService.findAll();
+    
+    // Calcular estatísticas
+    long confirmedCount = registrations.stream()
+        .filter(r -> r.getStatus() == Registration.RegistrationStatus.CONFIRMADO)
+        .count();
+    
+    long pendingCount = registrations.stream()
+        .filter(r -> r.getStatus() == Registration.RegistrationStatus.INSCRITO)
+        .count();
+        
+    long cancelledCount = registrations.stream()
+        .filter(r -> r.getStatus() == Registration.RegistrationStatus.CANCELADO)
+        .count();
+    
+    model.addAttribute("registrations", registrations);
+    model.addAttribute("events", events);
+    model.addAttribute("confirmedCount", confirmedCount);
+    model.addAttribute("pendingCount", pendingCount);
+    model.addAttribute("cancelledCount", cancelledCount);
+    
     return "pages/registrations/list";
   }
 
@@ -125,7 +147,16 @@ public class RegistrationController {
     registrationService.save(registration);
     
     redirectAttributes.addFlashAttribute("successMessage", "Registration confirmed successfully!");
-    return "redirect:/registrations/event/" + registration.getEvent().getId();
+    
+    // Verifica se veio da lista geral ou da página do evento
+    String referer = redirectAttributes.getFlashAttributes().get("referer") != null ? 
+        (String) redirectAttributes.getFlashAttributes().get("referer") : 
+        "/registrations";
+    
+    if (referer.contains("/registrations/event/")) {
+      return "redirect:/registrations/event/" + registration.getEvent().getId();
+    }
+    return "redirect:/registrations";
   }
 
   @PostMapping("/cancel/{id}")
@@ -138,7 +169,16 @@ public class RegistrationController {
     registrationService.save(registration);
     
     redirectAttributes.addFlashAttribute("successMessage", "Registration cancelled successfully!");
-    return "redirect:/registrations/event/" + registration.getEvent().getId();
+    
+    // Verifica se veio da lista geral ou da página do evento
+    String referer = redirectAttributes.getFlashAttributes().get("referer") != null ? 
+        (String) redirectAttributes.getFlashAttributes().get("referer") : 
+        "/registrations";
+    
+    if (referer.contains("/registrations/event/")) {
+      return "redirect:/registrations/event/" + registration.getEvent().getId();
+    }
+    return "redirect:/registrations";
   }
 
   @PostMapping("/toggle-attendance/{id}")
@@ -155,6 +195,15 @@ public class RegistrationController {
         "Participant marked as absent!";
     
     redirectAttributes.addFlashAttribute("successMessage", message);
-    return "redirect:/registrations/event/" + registration.getEvent().getId();
+    
+    // Verifica se veio da lista geral ou da página do evento
+    String referer = redirectAttributes.getFlashAttributes().get("referer") != null ? 
+        (String) redirectAttributes.getFlashAttributes().get("referer") : 
+        "/registrations";
+    
+    if (referer.contains("/registrations/event/")) {
+      return "redirect:/registrations/event/" + registration.getEvent().getId();
+    }
+    return "redirect:/registrations";
   }
 }

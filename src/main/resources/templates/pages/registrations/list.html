@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+  th:replace="~{layout/main :: html(~{::title}, ~{::body})}"
+>
+  <head>
+    <title>All Registrations</title>
+  </head>
+  <body>
+    <div class="edit-profile-card">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h4 class="mb-0">All Registrations</h4>
+              <small>Manage all event registrations across the platform</small>
+            </div>
+            <div>
+              <a
+                th:href="@{/registrations/create}"
+                class="btn btn-outline-light btn-sm"
+              >
+                <i class="bi bi-plus-circle me-1"></i>
+                Add Registration
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div
+            th:if="${successMessage}"
+            class="alert alert-success alert-dismissible fade show"
+            role="alert"
+          >
+            <span th:text="${successMessage}"></span>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+              aria-label="Close"
+            ></button>
+          </div>
+
+          <!-- Estatísticas Gerais -->
+          <div class="row mb-4">
+            <div class="col-md-3">
+              <div class="card bg-light border-0 shadow-sm stats-card">
+                <div class="card-body text-center">
+                  <div class="stats-icon bg-primary mb-2">
+                    <i class="bi bi-clipboard-check text-white"></i>
+                  </div>
+                  <h3 class="text-primary mb-1" th:text="${#lists.size(registrations)}">0</h3>
+                  <small class="text-muted">Total Registrations</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card bg-light border-0 shadow-sm stats-card">
+                <div class="card-body text-center">
+                  <div class="stats-icon bg-success mb-2">
+                    <i class="bi bi-check-circle text-white"></i>
+                  </div>
+                  <h3 class="text-success mb-1" th:text="${confirmedCount}">0</h3>
+                  <small class="text-muted">Confirmed</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card bg-light border-0 shadow-sm stats-card">
+                <div class="card-body text-center">
+                  <div class="stats-icon bg-warning mb-2">
+                    <i class="bi bi-clock text-white"></i>
+                  </div>
+                  <h3 class="text-warning mb-1" th:text="${pendingCount}">0</h3>
+                  <small class="text-muted">Pending</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card bg-light border-0 shadow-sm stats-card">
+                <div class="card-body text-center">
+                  <div class="stats-icon bg-danger mb-2">
+                    <i class="bi bi-x-circle text-white"></i>
+                  </div>
+                  <h3 class="text-danger mb-1" th:text="${cancelledCount}">0</h3>
+                  <small class="text-muted">Cancelled</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filtros -->
+          <div class="row mb-4">
+            <div class="col-md-4">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input
+                  type="text"
+                  id="searchInput"
+                  class="form-control"
+                  placeholder="Search participants by name or email..."
+                  onkeyup="filterRegistrations()"
+                />
+              </div>
+            </div>
+            <div class="col-md-3">
+              <select id="eventFilter" class="form-control" onchange="filterRegistrations()">
+                <option value="">All Events</option>
+                <option 
+                  th:each="event : ${events}" 
+                  th:value="${event.id}" 
+                  th:text="${event.name} + ' (' + ${#temporals.format(event.startDateTime, 'dd/MM/yyyy')} + ')' + ${!event.active ? ' [INACTIVE]' : ''}"
+                ></option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <select id="statusFilter" class="form-control" onchange="filterRegistrations()">
+                <option value="">All Statuses</option>
+                <option value="INSCRITO">Registered</option>
+                <option value="CONFIRMADO">Confirmed</option>
+                <option value="CANCELADO">Cancelled</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <select id="attendanceFilter" class="form-control" onchange="filterRegistrations()">
+                <option value="">All Attendance</option>
+                <option value="true">Present</option>
+                <option value="false">Absent</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Lista de Registrations -->
+          <div class="row">
+            <div
+              th:if="${#lists.isEmpty(registrations)}"
+              class="col-12 text-center py-5"
+            >
+              <div class="empty-state">
+                <i class="bi bi-clipboard-x display-1 text-muted mb-3"></i>
+                <h5 class="text-muted">No registrations found</h5>
+                <p class="text-muted">
+                  No participants have registered for any events yet.
+                </p>
+                <a th:href="@{/events}" class="btn btn-primary mt-3">
+                  <i class="bi bi-calendar-event me-1"></i>
+                  View All Events
+                </a>
+              </div>
+            </div>
+
+            <div th:if="${!#lists.isEmpty(registrations)}" class="col-12">
+              <div class="card bg-light border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                  <h6 class="mb-0 text-primary">
+                    <i class="bi bi-clipboard-check me-2"></i>
+                    All Registrations (<span id="visibleCount" th:text="${#lists.size(registrations)}">0</span>)
+                  </h6>
+                </div>
+                <div class="card-body pt-0">
+                  <div class="table-responsive">
+                    <table class="table table-hover users-table">
+                      <thead class="table-light">
+                        <tr>
+                          <th>Participant</th>
+                          <th>Event</th>
+                          <th>Registration Date</th>
+                          <th>Status</th>
+                          <th>Attendance</th>
+                          <th class="text-center">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="registrationsTableBody">
+                        <tr
+                          th:each="registration : ${registrations}"
+                          class="registration-row"
+                          th:data-name="${registration.participant.name}"
+                          th:data-email="${registration.participant.email}"
+                          th:data-event="${registration.event.id}"
+                          th:data-event-name="${registration.event.name}"
+                          th:data-status="${registration.status}"
+                          th:data-attended="${registration.attended}"
+                        >
+                          <td>
+                            <div class="d-flex align-items-center">
+                              <div class="user-avatar-small me-3">
+                                <i class="bi bi-person-circle"></i>
+                              </div>
+                              <div>
+                                <div class="fw-semibold" th:text="${registration.participant.name}">Participant Name</div>
+                                <small class="text-muted" th:text="${registration.participant.email}">participant@email.com</small>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="event-name-cell">
+                              <div class="fw-semibold" th:text="${registration.event.name}">Event Name</div>
+                              <small class="text-muted d-flex align-items-center">
+                                <span 
+                                  class="badge badge-sm me-2"
+                                  th:classappend="${registration.event.type.name() == 'PALESTRA'} ? 'bg-primary' : 
+                                                 (${registration.event.type.name() == 'CURSO'} ? 'bg-success' : 
+                                                 (${registration.event.type.name() == 'OFICINA'} ? 'bg-warning' : 
+                                                 (${registration.event.type.name() == 'FEIRA'} ? 'bg-info' : 
+                                                 (${registration.event.type.name() == 'WORKSHOP'} ? 'bg-secondary' : 'bg-dark'))))"
+                                  th:text="${registration.event.type.name()}"
+                                ></span>
+                                <span th:if="${!registration.event.active}" class="badge bg-danger badge-sm">INACTIVE</span>
+                              </small>
+                              <small class="text-muted d-block">
+                                <i class="bi bi-calendar3 me-1"></i>
+                                <span th:text="${#temporals.format(registration.event.startDateTime, 'dd/MM/yyyy HH:mm')}">Date</span>
+                              </small>
+                            </div>
+                          </td>
+                          <td>
+                            <div>
+                              <span th:text="${#temporals.format(registration.registrationDate, 'dd/MM/yyyy')}">Date</span>
+                              <br>
+                              <small class="text-muted" th:text="${#temporals.format(registration.registrationDate, 'HH:mm')}">Time</small>
+                            </div>
+                          </td>
+                          <td>
+                            <span 
+                              class="badge registration-status-badge"
+                              th:classappend="${registration.status.name() == 'CONFIRMADO'} ? 'bg-success' : 
+                                             (${registration.status.name() == 'CANCELADO'} ? 'bg-danger' : 'bg-warning')"
+                              th:text="${registration.status.name()}"
+                            ></span>
+                          </td>
+                          <td>
+                            <span 
+                              class="badge"
+                              th:classappend="${registration.attended} ? 'bg-success' : 'bg-secondary'"
+                              th:text="${registration.attended} ? 'Present' : 'Not Marked'"
+                            ></span>
+                          </td>
+                          <td class="text-center">
+                            <div class="dropdown">
+                              <button
+                                class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                              >
+                                <i class="bi bi-gear"></i>
+                              </button>
+                              <ul class="dropdown-menu">
+                                <li>
+                                  <a
+                                    class="dropdown-item"
+                                    th:href="@{/events/view/{id}(id=${registration.event.id})}"
+                                  >
+                                    <i class="bi bi-eye me-2 text-info"></i>View Event
+                                  </a>
+                                </li>
+                                <li>
+                                  <a
+                                    class="dropdown-item"
+                                    th:href="@{/registrations/event/{id}(id=${registration.event.id})}"
+                                  >
+                                    <i class="bi bi-people me-2 text-primary"></i>Event Registrations
+                                  </a>
+                                </li>
+                                <li th:if="${registration.status.name() == 'INSCRITO'}">
+                                  <form 
+                                    th:action="@{/registrations/confirm/{id}(id=${registration.id})}" 
+                                    method="post" 
+                                    style="display: inline; width: 100%;"
+                                  >
+                                    <button type="submit" class="dropdown-item">
+                                      <i class="bi bi-check-circle me-2 text-success"></i>Confirm Registration
+                                    </button>
+                                  </form>
+                                </li>
+                                <li th:if="${registration.status.name() != 'CANCELADO'}">
+                                  <form 
+                                    th:action="@{/registrations/toggle-attendance/{id}(id=${registration.id})}" 
+                                    method="post" 
+                                    style="display: inline; width: 100%;"
+                                  >
+                                    <button type="submit" class="dropdown-item">
+                                      <i class="bi bi-person-check me-2 text-warning"></i>
+                                      <span th:text="${registration.attended} ? 'Mark as Absent' : 'Mark as Present'">Toggle Attendance</span>
+                                    </button>
+                                  </form>
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                  <button
+                                    class="dropdown-item text-danger"
+                                    data-bs-toggle="modal"
+                                    th:data-bs-target="'#cancelRegistrationModal' + ${registration.id}"
+                                  >
+                                    <i class="bi bi-x-circle me-2"></i>Cancel Registration
+                                  </button>
+                                </li>
+                              </ul>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Navegação -->
+          <div class="row mt-4">
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <span class="text-muted">
+                    Showing <span id="visibleCountText" th:text="${#lists.size(registrations)}">0</span> of 
+                    <span th:text="${#lists.size(registrations)}">0</span> registrations
+                  </span>
+                </div>
+                <div>
+                  <a th:href="@{/users/dashboard}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Back to Dashboard
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modais de Cancelamento para cada inscrição -->
+    <div th:each="registration : ${registrations}">
+      <div th:replace="~{common/delete-modal :: deleteModal(
+        id='cancelRegistrationModal' + ${registration.id},
+        title='Cancel Registration',
+        message='Are you sure you want to cancel this participant registration?',
+        deleteUrl='/registrations/cancel/' + ${registration.id},
+        itemName=${registration.participant.name} + ' (' + ${registration.event.name} + ')',
+        buttonText='Cancel Registration'
+      )}"></div>
+    </div>
+
+    <!-- JavaScript para filtros -->
+    <script>
+      function filterRegistrations() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const selectedEvent = document.getElementById('eventFilter').value;
+        const selectedStatus = document.getElementById('statusFilter').value;
+        const selectedAttendance = document.getElementById('attendanceFilter').value;
+        const rows = document.querySelectorAll('.registration-row');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+          const name = row.dataset.name.toLowerCase();
+          const email = row.dataset.email.toLowerCase();
+          const eventId = row.dataset.event;
+          const eventName = row.dataset.eventName.toLowerCase();
+          const status = row.dataset.status;
+          const attended = row.dataset.attended;
+
+          const matchesSearch = name.includes(searchTerm) || 
+                              email.includes(searchTerm) || 
+                              eventName.includes(searchTerm);
+          const matchesEvent = !selectedEvent || eventId === selectedEvent;
+          const matchesStatus = !selectedStatus || status === selectedStatus;
+          const matchesAttendance = !selectedAttendance || attended === selectedAttendance;
+
+          if (matchesSearch && matchesEvent && matchesStatus && matchesAttendance) {
+            row.style.display = '';
+            visibleCount++;
+          } else {
+            row.style.display = 'none';
+          }
+        });
+
+        document.getElementById('visibleCount').textContent = visibleCount;
+        document.getElementById('visibleCountText').textContent = visibleCount;
+      }
+
+      // Força o dropdown a ser posicionado corretamente
+      document.addEventListener('DOMContentLoaded', function() {
+        const dropdownButtons = document.querySelectorAll('.table .dropdown-toggle');
+        
+        dropdownButtons.forEach(button => {
+          button.addEventListener('click', function() {
+            const dropdown = this.closest('.dropdown');
+            const menu = dropdown.querySelector('.dropdown-menu');
+            
+            if (menu) {
+              menu.style.zIndex = '10050';
+              menu.style.position = 'absolute';
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

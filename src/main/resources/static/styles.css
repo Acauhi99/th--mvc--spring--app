@@ -1215,17 +1215,56 @@ body {
 }
 
 /* Status filter styling */
-#statusFilter {
+#statusFilter, #eventFilter, #attendanceFilter {
   border-radius: 8px;
   border: 1px solid var(--border-color);
   padding: 0.75rem 1rem;
   transition: all 0.3s ease;
 }
 
-#statusFilter:focus {
+#statusFilter:focus, #eventFilter:focus, #attendanceFilter:focus {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
   outline: none;
+}
+
+/* Event type badges in registration list */
+.badge-sm {
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Registration list specific styles */
+.registration-list-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: var(--card-shadow) !important;
+  border-radius: 16px !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.registration-list-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Filter row styling */
+.filter-row {
+  background: rgba(248, 250, 252, 0.8);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+/* Attendance badge styling */
+.attendance-badge {
+  font-size: 0.7rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-weight: 500;
 }
 
 /* Dropdown actions in table */
@@ -1242,4 +1281,94 @@ body {
 .dropdown-menu .dropdown-item.text-danger:hover {
   background: rgba(220, 53, 69, 0.1);
   color: #dc3545 !important;
+}
+
+/* Table improvements for registration list */
+.registration-table th {
+  background: rgba(var(--bs-primary-rgb), 0.08) !important;
+  border: none;
+  font-weight: 600;
+  color: var(--primary-color);
+  padding: 1rem 0.75rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.3px;
+}
+
+.registration-table td {
+  padding: 1rem 0.75rem;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  vertical-align: middle;
+  font-size: 0.9rem;
+}
+
+/* Stats cards specific to registrations */
+.registration-stats-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+}
+
+.registration-stats-icon i {
+  font-size: 1.6rem;
+}
+
+/* Event name truncation in registration list */
+.event-name-cell {
+  max-width: 200px;
+}
+
+.event-name-cell .fw-semibold {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  max-width: 180px;
+}
+
+/* Responsive improvements for registration list */
+@media (max-width: 768px) {
+  .filter-row {
+    padding: 1rem;
+  }
+  
+  .filter-row .col-md-4,
+  .filter-row .col-md-3,
+  .filter-row .col-md-2 {
+    margin-bottom: 0.75rem;
+  }
+  
+  .registration-table th,
+  .registration-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.85rem;
+  }
+  
+  .event-name-cell .fw-semibold {
+    max-width: 120px;
+  }
+}
+
+@media (max-width: 576px) {
+  .registration-stats-icon {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .registration-stats-icon i {
+    font-size: 1.4rem;
+  }
+  
+  .stats-card h3 {
+    font-size: 1.5rem;
+  }
+  
+  .stats-card small {
+    font-size: 0.75rem;
+  }
 }
