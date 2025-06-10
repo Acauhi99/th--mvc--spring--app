@@ -52,7 +52,12 @@
                   <div class="stats-icon bg-primary mb-2">
                     <i class="bi bi-people text-white"></i>
                   </div>
-                  <h3 class="text-primary mb-1" th:text="${#lists.size(registrations)}">0</h3>
+                  <h3
+                    class="text-primary mb-1"
+                    th:text="${#lists.size(registrations)}"
+                  >
+                    0
+                  </h3>
                   <small class="text-muted">Total Registrations</small>
                 </div>
               </div>
@@ -63,7 +68,9 @@
                   <div class="stats-icon bg-success mb-2">
                     <i class="bi bi-check-circle text-white"></i>
                   </div>
-                  <h3 class="text-success mb-1" th:text="${confirmedCount}">0</h3>
+                  <h3 class="text-success mb-1" th:text="${confirmedCount}">
+                    0
+                  </h3>
                   <small class="text-muted">Confirmed</small>
                 </div>
               </div>
@@ -85,7 +92,12 @@
                   <div class="stats-icon bg-info mb-2">
                     <i class="bi bi-person-plus text-white"></i>
                   </div>
-                  <h3 class="text-info mb-1" th:text="${event.totalVacancies - #lists.size(registrations)}">0</h3>
+                  <h3
+                    class="text-info mb-1"
+                    th:text="${event.totalVacancies - #lists.size(registrations)}"
+                  >
+                    0
+                  </h3>
                   <small class="text-muted">Available Spots</small>
                 </div>
               </div>
@@ -101,10 +113,13 @@
               <div>
                 <strong>Event: </strong>
                 <span th:text="${event.name}">Event Name</span>
-                <br>
+                <br />
                 <small>
                   <i class="bi bi-calendar3 me-1"></i>
-                  <span th:text="${#temporals.format(event.startDateTime, 'dd/MM/yyyy HH:mm')}">Date</span>
+                  <span
+                    th:text="${#temporals.format(event.startDateTime, 'dd/MM/yyyy HH:mm')}"
+                    >Date</span
+                  >
                   <i class="bi bi-geo-alt ms-3 me-1"></i>
                   <span th:text="${event.location}">Location</span>
                 </small>
@@ -129,7 +144,11 @@
               </div>
             </div>
             <div class="col-md-4">
-              <select id="statusFilter" class="form-control" onchange="filterRegistrations()">
+              <select
+                id="statusFilter"
+                class="form-control"
+                onchange="filterRegistrations()"
+              >
                 <option value="">All Statuses</option>
                 <option value="INSCRITO">Registered</option>
                 <option value="CONFIRMADO">Confirmed</option>
@@ -150,7 +169,10 @@
                 <p class="text-muted">
                   No participants have registered for this event yet.
                 </p>
-                <a th:href="@{/events/view/{id}(id=${event.id})}" class="btn btn-primary mt-3">
+                <a
+                  th:href="@{/events/view/{id}(id=${event.id})}"
+                  class="btn btn-primary mt-3"
+                >
                   <i class="bi bi-arrow-left me-1"></i>
                   Back to Event Details
                 </a>
@@ -162,7 +184,11 @@
                 <div class="card-header bg-transparent border-0">
                   <h6 class="mb-0 text-primary">
                     <i class="bi bi-people me-2"></i>
-                    Registered Participants (<span id="visibleCount" th:text="${#lists.size(registrations)}">0</span>)
+                    Registered Participants (<span
+                      id="visibleCount"
+                      th:text="${#lists.size(registrations)}"
+                      >0</span
+                    >)
                   </h6>
                 </div>
                 <div class="card-body pt-0">
@@ -191,20 +217,36 @@
                                 <i class="bi bi-person-circle"></i>
                               </div>
                               <div>
-                                <div class="fw-semibold" th:text="${registration.participant.name}">Participant Name</div>
-                                <small class="text-muted" th:text="${registration.participant.email}">participant@email.com</small>
+                                <div
+                                  class="fw-semibold"
+                                  th:text="${registration.participant.name}"
+                                >
+                                  Participant Name
+                                </div>
+                                <small
+                                  class="text-muted"
+                                  th:text="${registration.participant.email}"
+                                  >participant@email.com</small
+                                >
                               </div>
                             </div>
                           </td>
                           <td>
                             <div>
-                              <span th:text="${#temporals.format(registration.registrationDate, 'dd/MM/yyyy')}">Date</span>
-                              <br>
-                              <small class="text-muted" th:text="${#temporals.format(registration.registrationDate, 'HH:mm')}">Time</small>
+                              <span
+                                th:text="${#temporals.format(registration.registrationDate, 'dd/MM/yyyy')}"
+                                >Date</span
+                              >
+                              <br />
+                              <small
+                                class="text-muted"
+                                th:text="${#temporals.format(registration.registrationDate, 'HH:mm')}"
+                                >Time</small
+                              >
                             </div>
                           </td>
                           <td>
-                            <span 
+                            <span
                               class="badge registration-status-badge"
                               th:classappend="${registration.status.name() == 'CONFIRMADO'} ? 'bg-success' : 
                                              (${registration.status.name() == 'CANCELADO'} ? 'bg-danger' : 'bg-warning')"
@@ -212,56 +254,54 @@
                             ></span>
                           </td>
                           <td>
-                            <span 
+                            <span
                               class="badge"
                               th:classappend="${registration.attended} ? 'bg-success' : 'bg-secondary'"
                               th:text="${registration.attended} ? 'Present' : 'Not Marked'"
                             ></span>
                           </td>
                           <td class="text-center">
-                            <div class="dropdown">
-                              <button
-                                class="btn btn-outline-secondary btn-sm dropdown-toggle"
-                                type="button"
-                                data-bs-toggle="dropdown"
+                            <div class="btn-group">
+                              <form
+                                th:if="${registration.status.name() == 'INSCRITO'}"
+                                th:action="@{/registrations/confirm/{id}(id=${registration.id})}"
+                                method="post"
+                                class="d-inline-block"
                               >
-                                <i class="bi bi-gear"></i>
+                                <button
+                                  type="submit"
+                                  class="btn btn-sm btn-outline-success action-btn"
+                                  title="Confirm Registration"
+                                >
+                                  <i class="bi bi-check-circle"></i>
+                                </button>
+                              </form>
+                              <form
+                                th:if="${registration.status.name() != 'CANCELADO'}"
+                                th:action="@{/registrations/toggle-attendance/{id}(id=${registration.id})}"
+                                method="post"
+                                class="d-inline-block"
+                              >
+                                <button
+                                  type="submit"
+                                  class="btn btn-sm action-btn"
+                                  th:class="${registration.attended ? 'btn btn-sm btn-outline-warning action-btn' : 'btn btn-sm btn-outline-primary action-btn'}"
+                                  th:title="${registration.attended ? 'Mark as Absent' : 'Mark as Present'}"
+                                >
+                                  <i
+                                    th:class="${registration.attended ? 'bi bi-x-circle' : 'bi bi-person-check'}"
+                                  ></i>
+                                </button>
+                              </form>
+                              <button
+                                th:if="${registration.status.name() != 'CANCELADO'}"
+                                class="btn btn-sm btn-outline-danger action-btn"
+                                data-bs-toggle="modal"
+                                th:data-bs-target="'#cancelRegistrationModal' + ${registration.id}"
+                                title="Cancel Registration"
+                              >
+                                <i class="bi bi-x-circle"></i>
                               </button>
-                              <ul class="dropdown-menu">
-                                <li th:if="${registration.status.name() == 'INSCRITO'}">
-                                  <form 
-                                    th:action="@{/registrations/confirm/{id}(id=${registration.id})}" 
-                                    method="post" 
-                                    style="display: inline; width: 100%;"
-                                  >
-                                    <button type="submit" class="dropdown-item">
-                                      <i class="bi bi-check-circle me-2 text-success"></i>Confirm Registration
-                                    </button>
-                                  </form>
-                                </li>
-                                <li th:if="${registration.status.name() != 'CANCELADO'}">
-                                  <form 
-                                    th:action="@{/registrations/toggle-attendance/{id}(id=${registration.id})}" 
-                                    method="post" 
-                                    style="display: inline; width: 100%;"
-                                  >
-                                    <button type="submit" class="dropdown-item">
-                                      <i th:class="${registration.attended} ? 'bi bi-x-circle me-2 text-warning' : 'bi bi-check-circle me-2 text-success'"></i>
-                                      <span th:text="${registration.attended} ? 'Mark as Absent' : 'Mark as Present'">Toggle Attendance</span>
-                                    </button>
-                                  </form>
-                                </li>
-                                <li><hr class="dropdown-divider" /></li>
-                                <li>
-                                  <button
-                                    class="dropdown-item text-danger"
-                                    data-bs-toggle="modal"
-                                    th:data-bs-target="'#cancelRegistrationModal' + ${registration.id}"
-                                  >
-                                    <i class="bi bi-x-circle me-2"></i>Cancel Registration
-                                  </button>
-                                </li>
-                              </ul>
                             </div>
                           </td>
                         </tr>
@@ -278,13 +318,19 @@
             <div class="col-12">
               <div class="d-flex justify-content-between align-items-center">
                 <div>
-                  <a th:href="@{/events/view/{id}(id=${event.id})}" class="btn btn-outline-secondary">
+                  <a
+                    th:href="@{/events/view/{id}(id=${event.id})}"
+                    class="btn btn-outline-secondary"
+                  >
                     <i class="bi bi-arrow-left me-1"></i>
                     Back to Event Details
                   </a>
                 </div>
                 <div>
-                  <a th:href="@{/events/my-events}" class="btn btn-outline-info">
+                  <a
+                    th:href="@{/events/my-events}"
+                    class="btn btn-outline-info"
+                  >
                     <i class="bi bi-list me-1"></i>
                     My Events
                   </a>
@@ -298,61 +344,47 @@
 
     <!-- Modais de Cancelamento para cada inscrição -->
     <div th:each="registration : ${registrations}">
-      <div th:replace="~{common/delete-modal :: deleteModal(
+      <div
+        th:replace="~{common/delete-modal :: deleteModal(
         id='cancelRegistrationModal' + ${registration.id},
         title='Cancel Registration',
         message='Are you sure you want to cancel this participant registration?',
         deleteUrl='/registrations/cancel/' + ${registration.id},
         itemName=${registration.participant.name} + ' (' + ${registration.participant.email} + ')',
         buttonText='Cancel Registration'
-      )}"></div>
+      )}"
+      ></div>
     </div>
 
     <!-- JavaScript para filtros -->
     <script>
       function filterRegistrations() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const selectedStatus = document.getElementById('statusFilter').value;
-        const rows = document.querySelectorAll('.registration-row');
+        const searchTerm = document
+          .getElementById("searchInput")
+          .value.toLowerCase();
+        const selectedStatus = document.getElementById("statusFilter").value;
+        const rows = document.querySelectorAll(".registration-row");
         let visibleCount = 0;
 
-        rows.forEach(row => {
+        rows.forEach((row) => {
           const name = row.dataset.name.toLowerCase();
           const email = row.dataset.email.toLowerCase();
           const status = row.dataset.status;
 
-          const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm);
+          const matchesSearch =
+            name.includes(searchTerm) || email.includes(searchTerm);
           const matchesStatus = !selectedStatus || status === selectedStatus;
 
           if (matchesSearch && matchesStatus) {
-            row.style.display = '';
+            row.style.display = "";
             visibleCount++;
           } else {
-            row.style.display = 'none';
+            row.style.display = "none";
           }
         });
 
-        document.getElementById('visibleCount').textContent = visibleCount;
+        document.getElementById("visibleCount").textContent = visibleCount;
       }
-
-      // Força o dropdown a ser posicionado corretamente
-      document.addEventListener('DOMContentLoaded', function() {
-        const dropdownButtons = document.querySelectorAll('.table .dropdown-toggle');
-        
-        dropdownButtons.forEach(button => {
-          button.addEventListener('click', function() {
-            // Remove qualquer positioning context que possa interferir
-            const dropdown = this.closest('.dropdown');
-            const menu = dropdown.querySelector('.dropdown-menu');
-            
-            if (menu) {
-              // Força o menu a ter z-index máximo
-              menu.style.zIndex = '10050';
-              menu.style.position = 'absolute';
-            }
-          });
-        });
-      });
     </script>
   </body>
 </html>

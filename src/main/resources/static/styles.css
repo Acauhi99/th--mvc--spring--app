@@ -1278,14 +1278,18 @@ body {
 }
 
 /* Status filter styling */
-#statusFilter, #eventFilter, #attendanceFilter {
+#statusFilter,
+#eventFilter,
+#attendanceFilter {
   border-radius: 8px;
   border: 1px solid var(--border-color);
   padding: 0.75rem 1rem;
   transition: all 0.3s ease;
 }
 
-#statusFilter:focus, #eventFilter:focus, #attendanceFilter:focus {
+#statusFilter:focus,
+#eventFilter:focus,
+#attendanceFilter:focus {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
   outline: none;
@@ -1374,7 +1378,11 @@ body {
   align-items: center;
   justify-content: center;
   margin: 0 auto;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--primary-light)
+  );
 }
 
 .registration-stats-icon i {
@@ -1399,19 +1407,19 @@ body {
   .filter-row {
     padding: 1rem;
   }
-  
+
   .filter-row .col-md-4,
   .filter-row .col-md-3,
   .filter-row .col-md-2 {
     margin-bottom: 0.75rem;
   }
-  
+
   .registration-table th,
   .registration-table td {
     padding: 0.75rem 0.5rem;
     font-size: 0.85rem;
   }
-  
+
   .event-name-cell .fw-semibold {
     max-width: 120px;
   }
@@ -1432,15 +1440,15 @@ body {
     width: 45px;
     height: 45px;
   }
-  
+
   .registration-stats-icon i {
     font-size: 1.4rem;
   }
-  
+
   .stats-card h3 {
     font-size: 1.5rem;
   }
-  
+
   .stats-card small {
     font-size: 0.75rem;
   }
@@ -1458,7 +1466,11 @@ body {
 /* MY REGISTRATIONS SPECIFIC STYLES */
 .upcoming-event-card {
   border-left: 4px solid var(--primary-color) !important;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(37, 99, 235, 0.02)) !important;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.98),
+    rgba(37, 99, 235, 0.02)
+  ) !important;
 }
 
 .upcoming-event-card:hover {
@@ -1469,7 +1481,11 @@ body {
 
 .past-event-card {
   border-left: 4px solid #6c757d !important;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(108, 117, 125, 0.02)) !important;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(108, 117, 125, 0.02)
+  ) !important;
   opacity: 0.9;
 }
 
@@ -1481,7 +1497,11 @@ body {
 
 .cancelled-event-card {
   border-left: 4px solid #dc3545 !important;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(220, 53, 69, 0.02)) !important;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(220, 53, 69, 0.02)
+  ) !important;
   opacity: 0.8;
 }
 
@@ -1551,7 +1571,9 @@ body {
 }
 
 /* Search and filter improvements */
-#searchInput, #statusFilter, #timeFilter {
+#searchInput,
+#statusFilter,
+#timeFilter {
   border-radius: 8px;
   border: 1px solid var(--border-color);
   padding: 0.75rem 1rem;
@@ -1559,7 +1581,9 @@ body {
   background: white;
 }
 
-#searchInput:focus, #statusFilter:focus, #timeFilter:focus {
+#searchInput:focus,
+#statusFilter:focus,
+#timeFilter:focus {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
   outline: none;
@@ -1572,29 +1596,29 @@ body {
   .cancelled-event-card {
     margin-bottom: 1rem;
   }
-  
+
   .detail-item {
     font-size: 0.85rem;
   }
-  
+
   .upcoming-info,
   .attendance-info {
     padding: 0.75rem;
     margin-bottom: 0.75rem;
   }
-  
+
   .stats-card .card-body {
     padding: 1rem 0.75rem;
   }
-  
+
   .stats-card h3 {
     font-size: 1.4rem;
   }
-  
+
   .border-bottom {
     font-size: 1rem;
   }
-  
+
   .border-bottom i {
     font-size: 1.1rem;
   }
@@ -1606,29 +1630,29 @@ body {
   .cancelled-event-card {
     border-left-width: 3px !important;
   }
-  
+
   .card-header {
     padding: 0.75rem 1rem !important;
   }
-  
+
   .card-body {
     padding: 0.75rem 1rem !important;
   }
-  
+
   .card-footer {
     padding: 0.75rem 1rem !important;
   }
-  
+
   .detail-item {
     font-size: 0.8rem;
     margin-bottom: 0.5rem !important;
   }
-  
+
   .registration-status-badge {
     font-size: 0.65rem;
     padding: 0.25rem 0.5rem;
   }
-  
+
   .upcoming-info small,
   .attendance-info small {
     font-size: 0.75rem;
@@ -1702,4 +1726,46 @@ body {
 .empty-state p {
   max-width: 400px;
   margin: 0 auto 1.5rem;
+}
+
+.action-btn {
+  width: 36px;
+  height: 36px;
+  padding: 6px 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  margin-right: 2px;
+}
+
+.btn-group .action-btn {
+  margin-right: 0;
+}
+
+form.d-inline-block {
+  display: inline-block;
+  vertical-align: top;
+  margin-right: 2px;
+}
+
+form.d-inline-block:last-child {
+  margin-right: 0;
+}
+
+.btn-group form.d-inline-block {
+  margin-right: 0;
+}
+
+#eventFilter,
+#statusFilter,
+#attendanceFilter {
+  cursor: pointer;
+}
+
+#eventFilter:hover,
+#statusFilter:hover,
+#attendanceFilter:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
