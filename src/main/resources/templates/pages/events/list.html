@@ -41,6 +41,20 @@
             ></button>
           </div>
 
+          <div
+            th:if="${errorMessage}"
+            class="alert alert-danger alert-dismissible fade show"
+            role="alert"
+          >
+            <span th:text="${errorMessage}"></span>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+              aria-label="Close"
+            ></button>
+          </div>
+
           <div class="row mb-4">
             <div class="col-md-6">
               <div class="input-group">
@@ -207,19 +221,106 @@
                       <i class="bi bi-eye me-1"></i>
                       View Details
                     </a>
-                    <button
-                      class="btn btn-outline-success btn-sm"
-                      sec:authorize="hasAuthority('ROLE_PARTICIPANTE')"
-                      onclick="registerForEvent(this)"
-                      th:data-event-id="${event.id}"
-                    >
-                      <i class="bi bi-plus-circle me-1"></i>
-                      Register
-                    </button>
+                    <!-- Botão de registro para participantes -->
+                    <div sec:authorize="hasAuthority('ROLE_PARTICIPANTE')">
+                      <button
+                        th:if="${userRegistrations != null and !userRegistrations[event.id]}"
+                        class="btn btn-outline-success btn-sm"
+                        data-bs-toggle="modal"
+                        th:data-bs-target="'#registerModal-' + ${event.id}"
+                        th:disabled="${(registrationCounts[event.id] ?: 0) >= event.totalVacancies}"
+                      >
+                        <i class="bi bi-plus-circle me-1"></i>
+                        <span th:if="${(registrationCounts[event.id] ?: 0) >= event.totalVacancies}">Full</span>
+                        <span th:if="${(registrationCounts[event.id] ?: 0) < event.totalVacancies}">Register</span>
+                      </button>
+                      <button
+                        th:if="${userRegistrations != null and userRegistrations[event.id]}"
+                        class="btn btn-success btn-sm"
+                        disabled
+                      >
+                        <i class="bi bi-check-circle me-1"></i>
+                        Registered
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-              <!-- ADD THE MODAL FRAGMENT FOR EACH EVENT -->
+
+              <!-- Modal de confirmação de registro -->
+              <div
+                sec:authorize="hasAuthority('ROLE_PARTICIPANTE')"
+                th:if="${userRegistrations == null or !userRegistrations[event.id]}"
+                class="modal fade"
+                th:id="'registerModal-' + ${event.id}"
+                tabindex="-1"
+                aria-hidden="true"
+              >
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">
+                        <i class="bi bi-calendar-plus me-2 text-success"></i>
+                        Confirm Registration
+                      </h5>
+                      <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"
+                      ></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="alert alert-info d-flex align-items-center">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <strong>Registration Confirmation</strong>
+                      </div>
+                      <p>Do you want to register for the following event?</p>
+                      <div class="event-registration-details">
+                        <h6 class="fw-bold text-primary" th:text="${event.name}">Event Name</h6>
+                        <div class="small text-muted mb-2">
+                          <i class="bi bi-calendar3 me-1"></i>
+                          <span th:text="${#temporals.format(event.startDateTime, 'dd/MM/yyyy HH:mm')}">Date</span>
+                        </div>
+                        <div class="small text-muted mb-2">
+                          <i class="bi bi-geo-alt me-1"></i>
+                          <span th:text="${event.location}">Location</span>
+                        </div>
+                        <div class="small text-muted mb-2">
+                          <i class="bi bi-people me-1"></i>
+                          <span>
+                            <span th:text="${registrationCounts[event.id]} ?: 0">0</span>
+                            /
+                            <span th:text="${event.totalVacancies}">0</span>
+                            participants registered
+                          </span>
+                        </div>
+                      </div>
+                      <p class="text-muted small mt-3">
+                        After registering, you will receive confirmation and can manage your registration from your profile.
+                      </p>
+                    </div>
+                    <div class="modal-footer">
+                      <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal"
+                      >
+                        <i class="bi bi-x-lg me-1"></i>
+                        Cancel
+                      </button>
+                      <form th:action="@{/events/register/{id}(id=${event.id})}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-success">
+                          <i class="bi bi-check-circle me-1"></i>
+                          Confirm Registration
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modal de deleção de evento -->
               <div
                 th:if="${#authentication.name == event.organizer.email or #authorization.expression('hasAuthority(''ROLE_ADMIN'')')}"
                 th:replace="~{common/delete-modal :: deleteModal(
@@ -347,20 +448,6 @@
         typeFilter.addEventListener("change", filterEvents);
         dateFilter.addEventListener("change", filterEvents);
       });
-
-      function registerForEvent(button) {
-        const eventId = button.dataset.eventId;
-
-        if (confirm("Do you want to register for this event?")) {
-          button.innerHTML =
-            '<i class="bi bi-check-circle me-1"></i>Registered';
-          button.classList.remove("btn-outline-success");
-          button.classList.add("btn-success");
-          button.disabled = true;
-
-          console.log("Registering for event:", eventId);
-        }
-      }
     </script>
   </body>
 </html>
