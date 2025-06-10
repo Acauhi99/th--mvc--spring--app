@@ -46,34 +46,45 @@ public class UserController {
 
     model.addAttribute("user", user);
     model.addAttribute("userTypes", User.UserType.values());
-    return "pages/users/form";
+    return "pages/users/edit"; // Usando o novo template
   }
 
   @PostMapping("/edit/{id}")
   @PreAuthorize("@securityActionChecker.canModifyUser(authentication, #user, #id)")
-  public String editUser(@PathVariable UUID id, @ModelAttribute User user, RedirectAttributes redirectAttributes) {
-    user.setId(id);
-    userService.save(user);
-    redirectAttributes.addFlashAttribute("successMessage", "User updated successfully");
-    return "redirect:/users/dashboard";
+  public String editUser(
+      @PathVariable UUID id,
+      @ModelAttribute User user,
+      @RequestParam(required = false) String newPassword,
+      RedirectAttributes redirectAttributes) {
+
+    try {
+      user.setId(id);
+      userService.updateUser(user, newPassword);
+      redirectAttributes.addFlashAttribute("successMessage", "User updated successfully");
+      return "redirect:/users/dashboard";
+    } catch (Exception e) {
+      redirectAttributes.addFlashAttribute("errorMessage", "Error updating user: " + e.getMessage());
+      return "redirect:/users/edit/" + id;
+    }
   }
-  
+
   @PostMapping("/delete/{id}")
   @PreAuthorize("@securityActionChecker.canDeleteUser(authentication, #id)")
-  public String deleteUser(@PathVariable UUID id, RedirectAttributes redirectAttributes, Authentication authentication) {
+  public String deleteUser(@PathVariable UUID id, RedirectAttributes redirectAttributes,
+      Authentication authentication) {
     try {
       User currentUser = userService.findByEmail(authentication.getName())
           .orElseThrow(() -> new IllegalStateException("User not found"));
 
       boolean isSelfDelete = currentUser.getId().equals(id);
-      
+
       userService.deleteById(id);
       redirectAttributes.addFlashAttribute("successMessage", "User deleted successfully");
-      
+
       if (isSelfDelete) {
         return "redirect:/logout";
       }
-      
+
       return "redirect:/users/dashboard";
     } catch (Exception e) {
       redirectAttributes.addFlashAttribute("errorMessage", "Error deleting user: " + e.getMessage());
@@ -99,7 +110,7 @@ public class UserController {
 
   @PostMapping("/profile/edit")
   public String updateProfile(@ModelAttribute User user, Authentication authentication,
-                           RedirectAttributes redirectAttributes) {
+      RedirectAttributes redirectAttributes) {
     User currentUser = userService.findByEmail(authentication.getName())
         .orElseThrow(() -> new IllegalStateException("User not found"));
 
@@ -125,20 +136,20 @@ public class UserController {
   @PreAuthorize("hasAuthority('ROLE_ADMIN')")
   public String dashboard(Model model) {
     List<User> users = userService.findAll();
-    
+
     Map<User.UserType, Long> userTypeCount = users.stream()
         .collect(Collectors.groupingBy(User::getUserType, Collectors.counting()));
-    
+
     List<User> recentUsers = users.stream()
         .sorted((u1, u2) -> u2.getId().compareTo(u1.getId()))
         .limit(6)
         .collect(Collectors.toList());
-    
+
     model.addAttribute("users", users);
     model.addAttribute("recentUsers", recentUsers);
     model.addAttribute("totalUsers", users.size());
     model.addAttribute("userTypeCount", userTypeCount);
-    
+
     return "pages/users/dashboard";
   }
 }

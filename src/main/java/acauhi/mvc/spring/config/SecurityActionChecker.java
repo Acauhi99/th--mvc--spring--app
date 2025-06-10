@@ -32,7 +32,7 @@ public class SecurityActionChecker {
     return isAdmin(authentication) || isSelf(authentication, userId);
   }
 
-  public boolean canModifyUser(Authentication authentication, User user, UUID targetUserId) {
+  public boolean canModifyUser(Authentication authentication, User updatedUser, UUID targetUserId) {
     if (isAdmin(authentication)) {
       return true;
     }
@@ -41,9 +41,8 @@ public class SecurityActionChecker {
       return false;
     }
 
-    return userService.findById(targetUserId)
-        .map(existingUser -> existingUser.getUserType() == user.getUserType())
-        .orElse(false);
+    User existingUser = userService.findById(targetUserId).orElse(null);
+    return existingUser != null && existingUser.getUserType() == updatedUser.getUserType();
   }
 
   public boolean canModifyEvent(Authentication authentication, UUID eventId) {
@@ -60,7 +59,7 @@ public class SecurityActionChecker {
     if (isAdmin(authentication)) {
       return true;
     }
-    
+
     return isSelf(authentication, userId);
   }
 }
