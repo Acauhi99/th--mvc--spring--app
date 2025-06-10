@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+  th:replace="~{layout/main :: html(~{::title}, ~{::body})}"
+>
+  <head>
+    <title>My Registrations</title>
+  </head>
+  <body>
+    <div class="edit-profile-card">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h4 class="mb-0">My Event Registrations</h4>
+              <small>Manage all your event registrations in one place</small>
+            </div>
+            <div>
+              <a
+                th:href="@{/events}"
+                class="btn btn-outline-light btn-sm"
+              >
+                <i class="bi bi-calendar-plus me-1"></i>
+                Find Events
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div
+            th:if="${successMessage}"
+            class="alert alert-success alert-dismissible fade show"
+            role="alert"
+          >
+            <span th:text="${successMessage}"></span>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+              aria-label="Close"
+            ></button>
+          </div>
+
+          <div
+            th:if="${errorMessage}"
+            class="alert alert-danger alert-dismissible fade show"
+            role="alert"
+          >
+            <span th:text="${errorMessage}"></span>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+              aria-label="Close"
+            ></button>
+          </div>
+
+          <!-- Estatísticas de Registrations -->
+          <div class="row mb-4">
+            <div class="col-md-3">
+              <div class="card bg-light border-0 shadow-sm stats-card">
+                <div class="card-body text-center">
+                  <div class="stats-icon bg-primary mb-2">
+                    <i class="bi bi-clipboard-check text-white"></i>
+                  </div>
+                  <h3 class="text-primary mb-1" th:text="${totalRegistrations}">0</h3>
+                  <small class="text-muted">Total Registrations</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card bg-light border-0 shadow-sm stats-card">
+                <div class="card-body text-center">
+                  <div class="stats-icon bg-info mb-2">
+                    <i class="bi bi-calendar-event text-white"></i>
+                  </div>
+                  <h3 class="text-info mb-1" th:text="${upcomingCount}">0</h3>
+                  <small class="text-muted">Upcoming Events</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card bg-light border-0 shadow-sm stats-card">
+                <div class="card-body text-center">
+                  <div class="stats-icon bg-success mb-2">
+                    <i class="bi bi-check-circle text-white"></i>
+                  </div>
+                  <h3 class="text-success mb-1" th:text="${confirmedCount}">0</h3>
+                  <small class="text-muted">Confirmed</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card bg-light border-0 shadow-sm stats-card">
+                <div class="card-body text-center">
+                  <div class="stats-icon bg-warning mb-2">
+                    <i class="bi bi-person-check text-white"></i>
+                  </div>
+                  <h3 class="text-warning mb-1" th:text="${attendedCount}">0</h3>
+                  <small class="text-muted">Attended</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filtros -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input
+                  type="text"
+                  id="searchInput"
+                  class="form-control"
+                  placeholder="Search events by name, location or type..."
+                  onkeyup="filterRegistrations()"
+                />
+              </div>
+            </div>
+            <div class="col-md-3">
+              <select id="statusFilter" class="form-control" onchange="filterRegistrations()">
+                <option value="">All Statuses</option>
+                <option value="INSCRITO">Registered</option>
+                <option value="CONFIRMADO">Confirmed</option>
+                <option value="CANCELADO">Cancelled</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <select id="timeFilter" class="form-control" onchange="filterRegistrations()">
+                <option value="">All Times</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="past">Past</option>
+                <option value="today">Today</option>
+                <option value="this-week">This Week</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div
+            th:if="${#lists.isEmpty(allRegistrations)}"
+            class="col-12 text-center py-5"
+          >
+            <div class="empty-state">
+              <i class="bi bi-calendar-x display-1 text-muted mb-3"></i>
+              <h5 class="text-muted">No Event Registrations</h5>
+              <p class="text-muted">
+                You haven't registered for any events yet. Start exploring our events!
+              </p>
+              <a th:href="@{/events}" class="btn btn-primary mt-3">
+                <i class="bi bi-calendar-plus me-1"></i>
+                Browse Events
+              </a>
+            </div>
+          </div>
+
+          <!-- Lista de Registrations -->
+          <div th:if="${!#lists.isEmpty(allRegistrations)}">
+            <!-- Upcoming Events Section -->
+            <div th:if="${!#lists.isEmpty(upcomingRegistrations)}" class="mb-5">
+              <h5 class="border-bottom pb-2 mb-3">
+                <i class="bi bi-calendar-event me-2 text-primary"></i>
+                Upcoming Events
+                <span class="badge bg-primary ms-2" th:text="${#lists.size(upcomingRegistrations)}">0</span>
+              </h5>
+              <div class="row">
+                <div
+                  th:each="registration : ${upcomingRegistrations}"
+                  class="col-lg-6 mb-4 registration-card"
+                  th:data-name="${registration.event.name}"
+                  th:data-location="${registration.event.location}"
+                  th:data-type="${registration.event.type}"
+                  th:data-status="${registration.status}"
+                  th:data-time="upcoming"
+                  th:data-start-date="${registration.event.startDateTime}"
+                >
+                  <div class="card border-0 shadow-sm h-100 upcoming-event-card">
+                    <div class="card-header border-0 pb-2">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <div class="d-flex gap-2 align-items-center">
+                          <span
+                            class="badge"
+                            th:classappend="${registration.event.type.name() == 'PALESTRA'} ? 'bg-primary' : 
+                                           (${registration.event.type.name() == 'CURSO'} ? 'bg-success' : 
+                                           (${registration.event.type.name() == 'OFICINA'} ? 'bg-warning' : 
+                                           (${registration.event.type.name() == 'FEIRA'} ? 'bg-info' : 
+                                           (${registration.event.type.name() == 'WORKSHOP'} ? 'bg-secondary' : 'bg-dark'))))"
+                            th:text="${registration.event.type.name()}"
+                          ></span>
+                          <span
+                            class="badge registration-status-badge"
+                            th:classappend="${registration.status.name() == 'CONFIRMADO'} ? 'bg-success' : 
+                                           (${registration.status.name() == 'CANCELADO'} ? 'bg-danger' : 'bg-warning text-dark')"
+                            th:text="${registration.status.name()}"
+                          ></span>
+                        </div>
+                        <div class="dropdown" th:if="${registration.status.name() != 'CANCELADO'}">
+                          <button
+                            class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                          >
+                            <i class="bi bi-three-dots"></i>
+                          </button>
+                          <ul class="dropdown-menu">
+                            <li>
+                              <a
+                                class="dropdown-item"
+                                th:href="@{/events/view/{id}(id=${registration.event.id})}"
+                              >
+                                <i class="bi bi-eye me-2"></i>View Event
+                              </a>
+                            </li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                              <button
+                                class="dropdown-item text-danger"
+                                data-bs-toggle="modal"
+                                th:data-bs-target="'#cancelModal-' + ${registration.id}"
+                              >
+                                <i class="bi bi-x-circle me-2"></i>Cancel Registration
+                              </button>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card-body pt-0">
+                      <h6 class="card-title mb-2" th:text="${registration.event.name}">Event Name</h6>
+                      
+                      <div class="event-details small mb-3">
+                        <div class="detail-item mb-1">
+                          <i class="bi bi-calendar3 text-primary me-2"></i>
+                          <span th:text="${#temporals.format(registration.event.startDateTime, 'dd/MM/yyyy HH:mm')}">Date</span>
+                        </div>
+                        <div class="detail-item mb-1">
+                          <i class="bi bi-geo-alt text-danger me-2"></i>
+                          <span th:text="${registration.event.location}">Location</span>
+                        </div>
+                        <div class="detail-item mb-1" th:if="${registration.event.speaker}">
+                          <i class="bi bi-person-badge text-success me-2"></i>
+                          <span th:text="${registration.event.speaker}">Speaker</span>
+                        </div>
+                        <div class="detail-item">
+                          <i class="bi bi-clock text-info me-2"></i>
+                          <span>Registered on </span>
+                          <span th:text="${#temporals.format(registration.registrationDate, 'dd/MM/yyyy')}">Date</span>
+                        </div>
+                      </div>
+
+                      <!-- Event countdown or time info -->
+                      <div class="upcoming-info p-2 rounded mb-2" 
+                           th:with="now=${T(java.time.LocalDateTime).now()}, 
+                                   hoursUntil=${T(java.time.Duration).between(now, registration.event.startDateTime).toHours()}">
+                        <div th:if="${hoursUntil > 24}" class="text-center">
+                          <i class="bi bi-calendar-check text-primary me-1"></i>
+                          <small>Starts in <span th:text="${T(java.time.Duration).between(now, registration.event.startDateTime).toDays()}">0</span> days</small>
+                        </div>
+                        <div th:if="${hoursUntil <= 24 && hoursUntil > 0}" class="text-center text-warning">
+                          <i class="bi bi-exclamation-triangle me-1"></i>
+                          <small><strong>Starting soon! In <span th:text="${hoursUntil}">0</span> hours</strong></small>
+                        </div>
+                        <div th:if="${hoursUntil <= 0}" class="text-center text-success">
+                          <i class="bi bi-play-circle me-1"></i>
+                          <small><strong>Event is happening now!</strong></small>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card-footer border-0 pt-0">
+                      <div class="d-grid gap-2">
+                        <a
+                          th:href="@{/events/view/{id}(id=${registration.event.id})}"
+                          class="btn btn-primary btn-sm"
+                        >
+                          <i class="bi bi-eye me-1"></i>
+                          View Event Details
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Past Events Section -->
+            <div th:if="${!#lists.isEmpty(pastRegistrations)}" class="mb-5">
+              <h5 class="border-bottom pb-2 mb-3">
+                <i class="bi bi-calendar-check me-2 text-secondary"></i>
+                Past Events
+                <span class="badge bg-secondary ms-2" th:text="${#lists.size(pastRegistrations)}">0</span>
+              </h5>
+              <div class="row">
+                <div
+                  th:each="registration : ${pastRegistrations}"
+                  class="col-lg-6 mb-4 registration-card"
+                  th:data-name="${registration.event.name}"
+                  th:data-location="${registration.event.location}"
+                  th:data-type="${registration.event.type}"
+                  th:data-status="${registration.status}"
+                  th:data-time="past"
+                  th:data-start-date="${registration.event.startDateTime}"
+                >
+                  <div class="card border-0 shadow-sm h-100 past-event-card">
+                    <div class="card-header border-0 pb-2">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <div class="d-flex gap-2 align-items-center">
+                          <span
+                            class="badge"
+                            th:classappend="${registration.event.type.name() == 'PALESTRA'} ? 'bg-primary' : 
+                                           (${registration.event.type.name() == 'CURSO'} ? 'bg-success' : 
+                                           (${registration.event.type.name() == 'OFICINA'} ? 'bg-warning' : 
+                                           (${registration.event.type.name() == 'FEIRA'} ? 'bg-info' : 
+                                           (${registration.event.type.name() == 'WORKSHOP'} ? 'bg-secondary' : 'bg-dark'))))"
+                            th:text="${registration.event.type.name()}"
+                          ></span>
+                          <span
+                            class="badge"
+                            th:classappend="${registration.attended} ? 'bg-success' : 'bg-secondary'"
+                            th:text="${registration.attended} ? 'Attended' : 'Did not attend'"
+                          ></span>
+                        </div>
+                        <div class="dropdown">
+                          <button
+                            class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                          >
+                            <i class="bi bi-three-dots"></i>
+                          </button>
+                          <ul class="dropdown-menu">
+                            <li>
+                              <a
+                                class="dropdown-item"
+                                th:href="@{/events/view/{id}(id=${registration.event.id})}"
+                              >
+                                <i class="bi bi-eye me-2"></i>View Event
+                              </a>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card-body pt-0">
+                      <h6 class="card-title mb-2" th:text="${registration.event.name}">Event Name</h6>
+                      
+                      <div class="event-details small mb-3">
+                        <div class="detail-item mb-1">
+                          <i class="bi bi-calendar3 text-secondary me-2"></i>
+                          <span th:text="${#temporals.format(registration.event.startDateTime, 'dd/MM/yyyy HH:mm')}">Date</span>
+                        </div>
+                        <div class="detail-item mb-1">
+                          <i class="bi bi-geo-alt text-secondary me-2"></i>
+                          <span th:text="${registration.event.location}">Location</span>
+                        </div>
+                        <div class="detail-item mb-1" th:if="${registration.event.speaker}">
+                          <i class="bi bi-person-badge text-secondary me-2"></i>
+                          <span th:text="${registration.event.speaker}">Speaker</span>
+                        </div>
+                        <div class="detail-item">
+                          <i class="bi bi-clock text-secondary me-2"></i>
+                          <span>Registered on </span>
+                          <span th:text="${#temporals.format(registration.registrationDate, 'dd/MM/yyyy')}">Date</span>
+                        </div>
+                      </div>
+
+                      <div th:if="${registration.status.name() != 'CANCELADO'}" class="attendance-info p-2 rounded">
+                        <div th:if="${registration.attended}" class="text-center text-success">
+                          <i class="bi bi-check-circle-fill me-1"></i>
+                          <small><strong>You attended this event</strong></small>
+                        </div>
+                        <div th:if="${!registration.attended}" class="text-center text-muted">
+                          <i class="bi bi-x-circle me-1"></i>
+                          <small>Attendance not recorded</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cancelled Registrations Section -->
+            <div th:if="${!#lists.isEmpty(cancelledRegistrations)}" class="mb-5">
+              <h5 class="border-bottom pb-2 mb-3">
+                <i class="bi bi-x-circle me-2 text-danger"></i>
+                Cancelled Registrations
+                <span class="badge bg-danger ms-2" th:text="${#lists.size(cancelledRegistrations)}">0</span>
+              </h5>
+              <div class="row">
+                <div
+                  th:each="registration : ${cancelledRegistrations}"
+                  class="col-lg-6 mb-4 registration-card"
+                  th:data-name="${registration.event.name}"
+                  th:data-location="${registration.event.location}"
+                  th:data-type="${registration.event.type}"
+                  th:data-status="${registration.status}"
+                  th:data-time="cancelled"
+                  th:data-start-date="${registration.event.startDateTime}"
+                >
+                  <div class="card border-0 shadow-sm h-100 cancelled-event-card">
+                    <div class="card-header border-0 pb-2">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <div class="d-flex gap-2 align-items-center">
+                          <span
+                            class="badge bg-secondary"
+                            th:text="${registration.event.type.name()}"
+                          ></span>
+                          <span class="badge bg-danger">CANCELLED</span>
+                        </div>
+                        <div class="dropdown">
+                          <button
+                            class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                          >
+                            <i class="bi bi-three-dots"></i>
+                          </button>
+                          <ul class="dropdown-menu">
+                            <li>
+                              <a
+                                class="dropdown-item"
+                                th:href="@{/events/view/{id}(id=${registration.event.id})}"
+                              >
+                                <i class="bi bi-eye me-2"></i>View Event
+                              </a>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card-body pt-0">
+                      <h6 class="card-title mb-2 text-muted" th:text="${registration.event.name}">Event Name</h6>
+                      
+                      <div class="event-details small mb-3">
+                        <div class="detail-item mb-1">
+                          <i class="bi bi-calendar3 text-muted me-2"></i>
+                          <span th:text="${#temporals.format(registration.event.startDateTime, 'dd/MM/yyyy HH:mm')}">Date</span>
+                        </div>
+                        <div class="detail-item mb-1">
+                          <i class="bi bi-geo-alt text-muted me-2"></i>
+                          <span th:text="${registration.event.location}">Location</span>
+                        </div>
+                        <div class="detail-item">
+                          <i class="bi bi-x-circle text-danger me-2"></i>
+                          <span>Cancelled on </span>
+                          <span th:text="${#temporals.format(registration.registrationDate, 'dd/MM/yyyy')}">Date</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation -->
+          <div class="row mt-4" th:if="${!#lists.isEmpty(allRegistrations)}">
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <span class="text-muted">
+                    Total: <span th:text="${totalRegistrations}">0</span> registrations
+                  </span>
+                </div>
+                <div>
+                  <a th:href="@{/events}" class="btn btn-outline-primary">
+                    <i class="bi bi-calendar-plus me-1"></i>
+                    Find More Events
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modais de Cancelamento -->
+    <div th:each="registration : ${upcomingRegistrations}">
+      <div th:if="${registration.status.name() != 'CANCELADO'}">
+        <div th:replace="~{common/delete-modal :: deleteModal(
+          id='cancelModal-' + ${registration.id},
+          title='Cancel Registration',
+          message='Are you sure you want to cancel your registration for this event?',
+          deleteUrl='/registrations/cancel-my-registration/' + ${registration.id},
+          itemName=${registration.event.name},
+          buttonText='Cancel Registration'
+        )}"></div>
+      </div>
+    </div>
+
+    <!-- JavaScript para filtros -->
+    <script>
+      function filterRegistrations() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const selectedStatus = document.getElementById('statusFilter').value;
+        const selectedTime = document.getElementById('timeFilter').value;
+        const cards = document.querySelectorAll('.registration-card');
+        
+        cards.forEach(card => {
+          const name = card.dataset.name.toLowerCase();
+          const location = card.dataset.location.toLowerCase();
+          const type = card.dataset.type.toLowerCase();
+          const status = card.dataset.status;
+          const time = card.dataset.time;
+          const startDate = new Date(card.dataset.startDate);
+          const now = new Date();
+          
+          // Search filter
+          const matchesSearch = name.includes(searchTerm) || 
+                              location.includes(searchTerm) || 
+                              type.includes(searchTerm);
+          
+          // Status filter
+          const matchesStatus = !selectedStatus || status === selectedStatus;
+          
+          // Time filter
+          let matchesTime = true;
+          if (selectedTime) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const eventDate = new Date(startDate);
+            eventDate.setHours(0, 0, 0, 0);
+            
+            switch (selectedTime) {
+              case 'upcoming':
+                matchesTime = time === 'upcoming';
+                break;
+              case 'past':
+                matchesTime = time === 'past';
+                break;
+              case 'today':
+                matchesTime = eventDate.getTime() === today.getTime();
+                break;
+              case 'this-week':
+                const endOfWeek = new Date(today);
+                endOfWeek.setDate(today.getDate() + (6 - today.getDay()));
+                matchesTime = eventDate >= today && eventDate <= endOfWeek;
+                break;
+            }
+          }
+          
+          const shouldShow = matchesSearch && matchesStatus && matchesTime;
+          card.style.display = shouldShow ? 'block' : 'none';
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -190,19 +190,28 @@ public class EventController {
     
     Long registrationCount = registrationService.countByEventAndStatus(event, Registration.RegistrationStatus.INSCRITO);
     
-    // Verificar se o usuário atual já está registrado (para participantes)
+    // Calcular vagas disponíveis
+    int availableVacancies = Math.max(0, event.getTotalVacancies() - registrationCount.intValue());
+    
+    // Verificar se o usuário atual está ATIVAMENTE registrado (não cancelado)
     boolean isRegistered = false;
     if (authentication != null && authentication.getAuthorities().stream()
         .anyMatch(auth -> auth.getAuthority().equals("ROLE_PARTICIPANTE"))) {
       User currentUser = userService.findByEmail(authentication.getName()).orElse(null);
       if (currentUser != null) {
-        isRegistered = registrationService.findByEventAndParticipant(event, currentUser).isPresent();
+        Optional<Registration> registration = registrationService.findByEventAndParticipant(event, currentUser);
+        // Considera registrado apenas se existir E não estiver cancelado
+        isRegistered = registration.isPresent() && 
+                      registration.get().getStatus() != Registration.RegistrationStatus.CANCELADO;
       }
     }
     
     model.addAttribute("event", event);
     model.addAttribute("registrationCount", registrationCount);
+    model.addAttribute("registrationsCount", registrationCount); // Para compatibilidade com o template
+    model.addAttribute("availableVacancies", availableVacancies);
     model.addAttribute("isRegistered", isRegistered);
+    
     return "pages/events/view";
   }
 

@@ -1454,3 +1454,252 @@ body {
     padding: 0.5rem 0.75rem;
   }
 }
+
+/* MY REGISTRATIONS SPECIFIC STYLES */
+.upcoming-event-card {
+  border-left: 4px solid var(--primary-color) !important;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(37, 99, 235, 0.02)) !important;
+}
+
+.upcoming-event-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.15) !important;
+  border-left-color: var(--primary-light) !important;
+}
+
+.past-event-card {
+  border-left: 4px solid #6c757d !important;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(108, 117, 125, 0.02)) !important;
+  opacity: 0.9;
+}
+
+.past-event-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(108, 117, 125, 0.1) !important;
+  opacity: 1;
+}
+
+.cancelled-event-card {
+  border-left: 4px solid #dc3545 !important;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(220, 53, 69, 0.02)) !important;
+  opacity: 0.8;
+}
+
+.cancelled-event-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.1) !important;
+  opacity: 0.95;
+}
+
+.cancelled-event-card .card-title {
+  text-decoration: line-through;
+}
+
+.upcoming-info {
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.attendance-info {
+  background: rgba(248, 250, 252, 0.8);
+  border: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  line-height: 1.5;
+}
+
+.detail-item i {
+  width: 16px;
+  font-size: 0.9rem;
+}
+
+/* Section headers with better spacing */
+.border-bottom {
+  border-bottom: 2px solid rgba(37, 99, 235, 0.1) !important;
+  padding-bottom: 0.75rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
+.border-bottom i {
+  font-size: 1.2rem;
+}
+
+/* Status badges improvements */
+.registration-status-badge {
+  font-size: 0.7rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* Card animations for different states */
+.upcoming-event-card {
+  animation: slideInUp 0.6s ease-out;
+}
+
+.past-event-card {
+  animation: slideInUp 0.6s ease-out 0.1s;
+  animation-fill-mode: backwards;
+}
+
+.cancelled-event-card {
+  animation: slideInUp 0.6s ease-out 0.2s;
+  animation-fill-mode: backwards;
+}
+
+/* Search and filter improvements */
+#searchInput, #statusFilter, #timeFilter {
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+#searchInput:focus, #statusFilter:focus, #timeFilter:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  outline: none;
+}
+
+/* Responsive improvements for my registrations */
+@media (max-width: 768px) {
+  .upcoming-event-card,
+  .past-event-card,
+  .cancelled-event-card {
+    margin-bottom: 1rem;
+  }
+  
+  .detail-item {
+    font-size: 0.85rem;
+  }
+  
+  .upcoming-info,
+  .attendance-info {
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .stats-card .card-body {
+    padding: 1rem 0.75rem;
+  }
+  
+  .stats-card h3 {
+    font-size: 1.4rem;
+  }
+  
+  .border-bottom {
+    font-size: 1rem;
+  }
+  
+  .border-bottom i {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .upcoming-event-card,
+  .past-event-card,
+  .cancelled-event-card {
+    border-left-width: 3px !important;
+  }
+  
+  .card-header {
+    padding: 0.75rem 1rem !important;
+  }
+  
+  .card-body {
+    padding: 0.75rem 1rem !important;
+  }
+  
+  .card-footer {
+    padding: 0.75rem 1rem !important;
+  }
+  
+  .detail-item {
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .registration-status-badge {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .upcoming-info small,
+  .attendance-info small {
+    font-size: 0.75rem;
+  }
+}
+
+/* Animations */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hover effects for registration cards */
+.registration-card {
+  transition: all 0.3s ease;
+}
+
+.registration-card:hover .card {
+  transform: translateY(-5px);
+}
+
+/* Enhanced dropdown for registration actions */
+.registration-card .dropdown-menu {
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+}
+
+.registration-card .dropdown-item {
+  border-radius: 6px;
+  padding: 0.6rem 1rem;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.registration-card .dropdown-item:hover {
+  background: rgba(37, 99, 235, 0.08);
+  transform: translateX(3px);
+}
+
+.registration-card .dropdown-item.text-danger:hover {
+  background: rgba(220, 53, 69, 0.08);
+  color: #dc3545 !important;
+}
+
+/* Empty state improvements for my registrations */
+.empty-state {
+  padding: 4rem 2rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  border: 2px dashed rgba(37, 99, 235, 0.2);
+}
+
+.empty-state i {
+  opacity: 0.6;
+  color: var(--primary-color);
+}
+
+.empty-state h5 {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.empty-state p {
+  max-width: 400px;
+  margin: 0 auto 1.5rem;
+}

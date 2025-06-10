@@ -16,6 +16,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 
 @Controller
 @RequestMapping("/registrations")
@@ -30,7 +32,6 @@ public class RegistrationController {
   @PreAuthorize("hasAuthority('ROLE_ADMIN')")
   public String listRegistrations(Model model) {
     List<Registration> registrations = registrationService.findAll();
-    // Mudança aqui: buscar todos os eventos do sistema em vez de apenas os ativos
     List<Event> events = eventService.findAll();
     
     // Calcular estatísticas
@@ -108,7 +109,47 @@ public class RegistrationController {
   public String myRegistrations(Model model, Authentication authentication) {
     User user = userService.findByEmail(authentication.getName())
         .orElseThrow(() -> new IllegalStateException("User not found"));
-    model.addAttribute("registrations", registrationService.findByParticipant(user));
+    
+    List<Registration> allRegistrations = registrationService.findByParticipant(user);
+    
+    // Separar registrações em categorias
+    LocalDateTime now = LocalDateTime.now();
+    
+    List<Registration> upcomingRegistrations = allRegistrations.stream()
+        .filter(r -> r.getEvent().getStartDateTime().isAfter(now))
+        .filter(r -> r.getStatus() != Registration.RegistrationStatus.CANCELADO)
+        .sorted((r1, r2) -> r1.getEvent().getStartDateTime().compareTo(r2.getEvent().getStartDateTime()))
+        .collect(Collectors.toList());
+    
+    List<Registration> pastRegistrations = allRegistrations.stream()
+        .filter(r -> r.getEvent().getStartDateTime().isBefore(now))
+        .sorted((r1, r2) -> r2.getEvent().getStartDateTime().compareTo(r1.getEvent().getStartDateTime()))
+        .collect(Collectors.toList());
+    
+    List<Registration> cancelledRegistrations = allRegistrations.stream()
+        .filter(r -> r.getStatus() == Registration.RegistrationStatus.CANCELADO)
+        .sorted((r1, r2) -> r2.getRegistrationDate().compareTo(r1.getRegistrationDate()))
+        .collect(Collectors.toList());
+    
+    // Calcular estatísticas
+    long totalRegistrations = allRegistrations.size();
+    long confirmedCount = allRegistrations.stream()
+        .filter(r -> r.getStatus() == Registration.RegistrationStatus.CONFIRMADO)
+        .count();
+    long attendedCount = allRegistrations.stream()
+        .filter(r -> r.getAttended())
+        .count();
+    long upcomingCount = upcomingRegistrations.size();
+    
+    model.addAttribute("allRegistrations", allRegistrations);
+    model.addAttribute("upcomingRegistrations", upcomingRegistrations);
+    model.addAttribute("pastRegistrations", pastRegistrations);
+    model.addAttribute("cancelledRegistrations", cancelledRegistrations);
+    model.addAttribute("totalRegistrations", totalRegistrations);
+    model.addAttribute("confirmedCount", confirmedCount);
+    model.addAttribute("attendedCount", attendedCount);
+    model.addAttribute("upcomingCount", upcomingCount);
+    
     return "pages/registrations/my-registrations";
   }
 
@@ -205,5 +246,48 @@ public class RegistrationController {
       return "redirect:/registrations/event/" + registration.getEvent().getId();
     }
     return "redirect:/registrations";
+  }
+
+  @PostMapping("/cancel-my-registration/{id}")
+  @PreAuthorize("hasAuthority('ROLE_PARTICIPANTE')")
+  public String cancelMyRegistration(@PathVariable UUID id, Authentication authentication, 
+                                    RedirectAttributes redirectAttributes) {
+    try {
+      User user = userService.findByEmail(authentication.getName())
+          .orElseThrow(() -> new IllegalStateException("User not found"));
+      
+      Registration registration = registrationService.findById(id)
+          .orElseThrow(() -> new IllegalArgumentException("Invalid registration Id: " + id));
+      
+      // Verificar se a inscrição pertence ao usuário atual
+      if (!registration.getParticipant().getId().equals(user.getId())) {
+        redirectAttributes.addFlashAttribute("errorMessage", "You can only cancel your own registrations!");
+        return "redirect:/registrations/my-registrations";
+      }
+      
+      // Verificar se o evento já passou
+      if (registration.getEvent().getStartDateTime().isBefore(LocalDateTime.now())) {
+        redirectAttributes.addFlashAttribute("errorMessage", "Cannot cancel registration for past events!");
+        return "redirect:/registrations/my-registrations";
+      }
+      
+      // Verificar se já está cancelado
+      if (registration.getStatus() == Registration.RegistrationStatus.CANCELADO) {
+        redirectAttributes.addFlashAttribute("errorMessage", "Registration is already cancelled!");
+        return "redirect:/registrations/my-registrations";
+      }
+      
+      registration.setStatus(Registration.RegistrationStatus.CANCELADO);
+      registrationService.save(registration);
+      
+      redirectAttributes.addFlashAttribute("successMessage", 
+          "Registration for \"" + registration.getEvent().getName() + "\" has been cancelled successfully!");
+      
+    } catch (Exception e) {
+      redirectAttributes.addFlashAttribute("errorMessage", 
+          "Error cancelling registration: " + e.getMessage());
+    }
+    
+    return "redirect:/registrations/my-registrations";
   }
 }
