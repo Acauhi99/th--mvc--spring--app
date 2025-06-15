@@ -26,7 +26,7 @@ public class SecurityConfig {
   private final UserRepository userRepository;
 
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+  SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
         .authorizeHttpRequests(authorize -> authorize
             .requestMatchers("/css/**", "/js/**", "/images/**", "/styles.css").permitAll()
@@ -59,7 +59,7 @@ public class SecurityConfig {
   }
 
   @Bean
-  public UserDetailsService userDetailsService() {
+  UserDetailsService userDetailsService() {
     return username -> userRepository.findByEmail(username)
         .map(this::mapToUserDetails)
         .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
@@ -73,7 +73,7 @@ public class SecurityConfig {
   }
 
   @Bean
-  public PasswordEncoder passwordEncoder() {
+  PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
   }
 }
