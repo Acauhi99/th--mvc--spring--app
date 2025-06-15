@@ -65,6 +65,22 @@ public class DataInitializer implements CommandLineRunner {
           .build();
       participante2 = userService.save(participante2);
 
+      User participante3 = User.builder()
+          .name("Pedro Participante")
+          .email("pedro@example.com")
+          .password("password")
+          .userType(User.UserType.PARTICIPANTE)
+          .build();
+      participante3 = userService.save(participante3);
+
+      User participante4 = User.builder()
+          .name("Lucia Participante")
+          .email("lucia@example.com")
+          .password("password")
+          .userType(User.UserType.PARTICIPANTE)
+          .build();
+      participante4 = userService.save(participante4);
+
       Event evento1 = Event.builder()
           .name("Introdução ao Spring Boot")
           .description("Workshop prático sobre desenvolvimento com Spring Boot")
@@ -107,8 +123,9 @@ public class DataInitializer implements CommandLineRunner {
           .build();
       eventoLimitado = eventRepository.save(eventoLimitado);
 
-      List<User> participantes = List.of(participante1, participante2);
+      List<User> participantes = List.of(participante1, participante2, participante3, participante4);
 
+      // Registration for evento1
       for (int i = 0; i < 2; i++) {
         Registration registration = Registration.builder()
             .event(evento1)
@@ -120,7 +137,7 @@ public class DataInitializer implements CommandLineRunner {
         registrationRepository.save(registration);
       }
 
-
+      // Registration for eventoPassado
       for (int i = 0; i < 3; i++) {
         Registration registration = Registration.builder()
             .event(eventoPassado)
@@ -132,6 +149,7 @@ public class DataInitializer implements CommandLineRunner {
         registrationRepository.save(registration);
       }
 
+      // Registration for eventoLimitado
       for (int i = 0; i < 4; i++) {
         Registration registration = Registration.builder()
             .event(eventoLimitado)
@@ -143,11 +161,10 @@ public class DataInitializer implements CommandLineRunner {
         registrationRepository.save(registration);
       }
 
-
       System.out.println("=== Banco de dados inicializado com dados de teste ===");
       System.out.println("Usuários criados: 7 (1 admin, 2 organizadores, 4 participantes)");
-      System.out.println("Eventos criados: 6 (5 futuros, 1 passado)");
-      System.out.println("Registros criados: 15");
+      System.out.println("Eventos criados: 3 (2 futuros, 1 passado)");
+      System.out.println("Registros criados: 9");
       System.out.println("=== Dados de login para teste ===");
       System.out.println("Admin: admin@example.com / password");
       System.out.println("Organizador 1: joao.organizador@example.com / password");

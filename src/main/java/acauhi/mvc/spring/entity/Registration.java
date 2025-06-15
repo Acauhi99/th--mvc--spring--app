@@ -23,11 +23,15 @@ public class Registration {
   private UUID id;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "event_id", nullable = false)
+  @JoinColumn(name = "event_id", nullable = false,
+              foreignKey = @ForeignKey(name = "fk_registration_event", 
+                                      foreignKeyDefinition = "FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE"))
   private Event event;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "participant_id", nullable = false)
+  @JoinColumn(name = "participant_id", nullable = false,
+              foreignKey = @ForeignKey(name = "fk_registration_participant", 
+                                      foreignKeyDefinition = "FOREIGN KEY (participant_id) REFERENCES users(id) ON DELETE CASCADE"))
   private User participant;
 
   @Column(nullable = false)

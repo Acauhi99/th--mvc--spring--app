@@ -47,7 +47,7 @@ public class Event {
   private String speaker; // Palestrante
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "organizer_id", nullable = false)
+  @JoinColumn(name = "organizer_id", nullable = false, foreignKey = @ForeignKey(name = "fk_event_organizer", foreignKeyDefinition = "FOREIGN KEY (organizer_id) REFERENCES users(id) ON DELETE CASCADE"))
   private User organizer;
 
   @Column(nullable = false)
