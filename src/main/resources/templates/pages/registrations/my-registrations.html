@@ -25,35 +25,6 @@
           </div>
         </div>
         <div class="card-body">
-          <div
-            th:if="${successMessage}"
-            class="alert alert-success alert-dismissible fade show"
-            role="alert"
-          >
-            <span th:text="${successMessage}"></span>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="alert"
-              aria-label="Close"
-            ></button>
-          </div>
-
-          <div
-            th:if="${errorMessage}"
-            class="alert alert-danger alert-dismissible fade show"
-            role="alert"
-          >
-            <span th:text="${errorMessage}"></span>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="alert"
-              aria-label="Close"
-            ></button>
-          </div>
-
-          <!-- Estatísticas de Registrations -->
           <div class="row mb-4">
             <div class="col-md-3">
               <div class="card bg-light border-0 shadow-sm stats-card">
@@ -106,8 +77,6 @@
               </div>
             </div>
           </div>
-
-          <!-- Filtros -->
           <div class="row mb-4">
             <div class="col-md-6">
               <div class="input-group">
@@ -149,8 +118,6 @@
               </select>
             </div>
           </div>
-
-          <!-- Empty State -->
           <div
             th:if="${#lists.isEmpty(allRegistrations)}"
             class="col-12 text-center py-5"
@@ -168,10 +135,7 @@
               </a>
             </div>
           </div>
-
-          <!-- Lista de Registrations -->
           <div th:if="${!#lists.isEmpty(allRegistrations)}">
-            <!-- Upcoming Events Section -->
             <div th:if="${!#lists.isEmpty(upcomingRegistrations)}" class="mb-5">
               <h5 class="border-bottom pb-2 mb-3">
                 <i class="bi bi-calendar-event me-2 text-primary"></i>
@@ -334,8 +298,6 @@
                 </div>
               </div>
             </div>
-
-            <!-- Past Events Section -->
             <div th:if="${!#lists.isEmpty(pastRegistrations)}" class="mb-5">
               <h5 class="border-bottom pb-2 mb-3">
                 <i class="bi bi-calendar-check me-2 text-secondary"></i>
@@ -466,8 +428,6 @@
                 </div>
               </div>
             </div>
-
-            <!-- Cancelled Registrations Section -->
             <div
               th:if="${!#lists.isEmpty(cancelledRegistrations)}"
               class="mb-5"
@@ -564,8 +524,6 @@
               </div>
             </div>
           </div>
-
-          <!-- Navigation -->
           <div class="row mt-4" th:if="${!#lists.isEmpty(allRegistrations)}">
             <div class="col-12">
               <div class="d-flex justify-content-between align-items-center">
@@ -587,8 +545,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Modais de Cancelamento -->
     <div th:each="registration : ${upcomingRegistrations}">
       <div th:if="${registration.status.name() != 'CANCELADO'}">
         <div
@@ -603,8 +559,6 @@
         ></div>
       </div>
     </div>
-
-    <!-- JavaScript para filtros -->
     <script>
       function filterRegistrations() {
         const searchTerm = document

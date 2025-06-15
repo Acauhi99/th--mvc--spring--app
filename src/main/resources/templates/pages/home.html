@@ -11,7 +11,9 @@
     <div class="container py-5 home-page-container">
       <div class="row justify-content-center">
         <div class="col-lg-10">
-          <div class="home-hero-card bg-light p-lg-5 p-4 rounded-3 border-0 shadow-sm text-center">
+          <div
+            class="home-hero-card bg-light p-lg-5 p-4 rounded-3 border-0 shadow-sm text-center"
+          >
             <i class="bi bi-calendar-heart home-hero-icon"></i>
             <h1 class="display-5 fw-bold mb-3">Welcome to EventMaster!</h1>
             <p class="fs-5 text-muted col-lg-9 mx-auto">
@@ -20,32 +22,43 @@
             </p>
             <hr class="my-4 mx-auto home-hr" />
 
-            <!-- Unauthenticated Users -->
             <div sec:authorize="!isAuthenticated()">
               <p class="lead mb-4">
                 Join our community to unlock a world of events.
               </p>
               <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
-                <a th:href="@{/login}" class="btn btn-primary btn-lg px-4 gap-3">
+                <a
+                  th:href="@{/login}"
+                  class="btn btn-primary btn-lg px-4 gap-3"
+                >
                   <i class="bi bi-box-arrow-in-right"></i> Login
                 </a>
-                <a th:href="@{/register}" class="btn btn-outline-primary btn-lg px-4">
+                <a
+                  th:href="@{/register}"
+                  class="btn btn-outline-primary btn-lg px-4"
+                >
                   <i class="bi bi-person-plus"></i> Register
                 </a>
               </div>
             </div>
 
-            <!-- Authenticated Users -->
             <div sec:authorize="isAuthenticated()">
               <div class="alert alert-info mb-4 mx-auto auth-user-info-alert">
                 <p class="mb-1 fs-5">
-                  Hello, <strong sec:authentication="name" class="text-primary"></strong>!
+                  Hello,
+                  <strong
+                    sec:authentication="name"
+                    class="text-primary"
+                  ></strong
+                  >!
                 </p>
                 <p class="mb-0 text-muted">
                   Your current role:
-                  <span th:each="auth : ${#authentication.principal.authorities}"
-                        th:text="${auth.authority.replace('ROLE_', '')}"
-                        class="badge bg-primary-soft text-primary-dark me-1 auth-role-badge"></span>
+                  <span
+                    th:each="auth : ${#authentication.principal.authorities}"
+                    th:text="${auth.authority.replace('ROLE_', '')}"
+                    class="badge bg-primary-soft text-primary-dark me-1 auth-role-badge"
+                  ></span>
                 </p>
               </div>
 
@@ -66,13 +79,19 @@
                 </div>
 
                 <!-- Organizer Actions -->
-                <div class="col-md-6 col-lg-4" sec:authorize="hasAuthority('ROLE_ORGANIZADOR')">
+                <div
+                  class="col-md-6 col-lg-4"
+                  sec:authorize="hasAuthority('ROLE_ORGANIZADOR')"
+                >
                   <a th:href="@{/events/create}" class="quick-action-card">
                     <i class="bi bi-plus-circle-dotted"></i>
                     <span>Create New Event</span>
                   </a>
                 </div>
-                <div class="col-md-6 col-lg-4" sec:authorize="hasAuthority('ROLE_ORGANIZADOR')">
+                <div
+                  class="col-md-6 col-lg-4"
+                  sec:authorize="hasAuthority('ROLE_ORGANIZADOR')"
+                >
                   <a th:href="@{/events/my-events}" class="quick-action-card">
                     <i class="bi bi-briefcase"></i>
                     <span>Manage My Events</span>
@@ -80,27 +99,39 @@
                 </div>
 
                 <!-- Admin Actions -->
-                <div class="col-md-6 col-lg-4" sec:authorize="hasAuthority('ROLE_ADMIN')">
+                <div
+                  class="col-md-6 col-lg-4"
+                  sec:authorize="hasAuthority('ROLE_ADMIN')"
+                >
                   <a th:href="@{/users}" class="quick-action-card">
                     <i class="bi bi-people-fill"></i>
                     <span>Manage Users</span>
                   </a>
                 </div>
-                <div class="col-md-6 col-lg-4" sec:authorize="hasAuthority('ROLE_ADMIN')">
-                  <!-- Link to an admin dashboard if you have one -->
-                  <a th:href="@{/admin/dashboard}" class="quick-action-card" th:if="${false}"> <!-- Replace with actual link and condition -->
+                <div
+                  class="col-md-6 col-lg-4"
+                  sec:authorize="hasAuthority('ROLE_ADMIN')"
+                >
+                  <a
+                    th:href="@{/admin/dashboard}"
+                    class="quick-action-card"
+                    th:if="${false}"
+                  >
                     <i class="bi bi-speedometer2"></i>
                     <span>Admin Dashboard</span>
                   </a>
                 </div>
               </div>
-                 <div class="mt-5">
-                    <form th:action="@{/logout}" method="post" class="d-inline">
-                        <button type="submit" class="btn btn-outline-secondary btn-lg">
-                            <i class="bi bi-box-arrow-left"></i> Logout
-                        </button>
-                    </form>
-                </div>
+              <div class="mt-5">
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                  <button
+                    type="submit"
+                    class="btn btn-outline-secondary btn-lg"
+                  >
+                    <i class="bi bi-box-arrow-left"></i> Logout
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
         </div>

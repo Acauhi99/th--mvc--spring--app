@@ -27,34 +27,6 @@
           </div>
         </div>
         <div class="card-body">
-          <div
-            th:if="${successMessage}"
-            class="alert alert-success alert-dismissible fade show"
-            role="alert"
-          >
-            <span th:text="${successMessage}"></span>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="alert"
-              aria-label="Close"
-            ></button>
-          </div>
-
-          <div
-            th:if="${errorMessage}"
-            class="alert alert-danger alert-dismissible fade show"
-            role="alert"
-          >
-            <span th:text="${errorMessage}"></span>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="alert"
-              aria-label="Close"
-            ></button>
-          </div>
-
           <div class="row mb-4">
             <div class="col-md-6">
               <div class="input-group">
@@ -231,8 +203,14 @@
                         th:disabled="${(registrationCounts[event.id] ?: 0) >= event.totalVacancies}"
                       >
                         <i class="bi bi-plus-circle me-1"></i>
-                        <span th:if="${(registrationCounts[event.id] ?: 0) >= event.totalVacancies}">Full</span>
-                        <span th:if="${(registrationCounts[event.id] ?: 0) < event.totalVacancies}">Register</span>
+                        <span
+                          th:if="${(registrationCounts[event.id] ?: 0) >= event.totalVacancies}"
+                          >Full</span
+                        >
+                        <span
+                          th:if="${(registrationCounts[event.id] ?: 0) < event.totalVacancies}"
+                          >Register</span
+                        >
                       </button>
                       <button
                         th:if="${userRegistrations != null and userRegistrations[event.id]}"
@@ -277,10 +255,18 @@
                       </div>
                       <p>Do you want to register for the following event?</p>
                       <div class="event-registration-details">
-                        <h6 class="fw-bold text-primary" th:text="${event.name}">Event Name</h6>
+                        <h6
+                          class="fw-bold text-primary"
+                          th:text="${event.name}"
+                        >
+                          Event Name
+                        </h6>
                         <div class="small text-muted mb-2">
                           <i class="bi bi-calendar3 me-1"></i>
-                          <span th:text="${#temporals.format(event.startDateTime, 'dd/MM/yyyy HH:mm')}">Date</span>
+                          <span
+                            th:text="${#temporals.format(event.startDateTime, 'dd/MM/yyyy HH:mm')}"
+                            >Date</span
+                          >
                         </div>
                         <div class="small text-muted mb-2">
                           <i class="bi bi-geo-alt me-1"></i>
@@ -289,7 +275,9 @@
                         <div class="small text-muted mb-2">
                           <i class="bi bi-people me-1"></i>
                           <span>
-                            <span th:text="${registrationCounts[event.id]} ?: 0">0</span>
+                            <span th:text="${registrationCounts[event.id]} ?: 0"
+                              >0</span
+                            >
                             /
                             <span th:text="${event.totalVacancies}">0</span>
                             participants registered
@@ -297,7 +285,8 @@
                         </div>
                       </div>
                       <p class="text-muted small mt-3">
-                        After registering, you will receive confirmation and can manage your registration from your profile.
+                        After registering, you will receive confirmation and can
+                        manage your registration from your profile.
                       </p>
                     </div>
                     <div class="modal-footer">
@@ -309,7 +298,11 @@
                         <i class="bi bi-x-lg me-1"></i>
                         Cancel
                       </button>
-                      <form th:action="@{/events/register/{id}(id=${event.id})}" method="post" class="d-inline">
+                      <form
+                        th:action="@{/events/register/{id}(id=${event.id})}"
+                        method="post"
+                        class="d-inline"
+                      >
                         <button type="submit" class="btn btn-success">
                           <i class="bi bi-check-circle me-1"></i>
                           Confirm Registration
