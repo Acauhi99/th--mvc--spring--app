@@ -262,7 +262,6 @@
                 </div>
                 <div class="card-footer bg-transparent border-0">
                   <div class="d-grid gap-2">
-                    <!-- Botão de registro para participantes -->
                     <div sec:authorize="hasAuthority('ROLE_PARTICIPANTE')">
                       <button
                         th:if="${!isRegistered}"
@@ -303,7 +302,6 @@
             </div>
           </div>
 
-          <!-- Action Buttons -->
           <div class="row">
             <div class="col-12">
               <div class="d-flex gap-2">

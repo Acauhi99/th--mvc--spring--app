@@ -14,18 +14,24 @@ import java.util.UUID;
 @Repository
 public interface EventRepository extends JpaRepository<Event, UUID> {
 
+  // Métodos de busca por status e tempo
   List<Event> findByActiveTrue();
-
-  List<Event> findByOrganizerAndActiveTrue(User organizer);
 
   List<Event> findByActiveTrueAndStartDateTimeAfter(LocalDateTime dateTime);
 
-  @Query("SELECT COUNT(r) FROM Registration r WHERE r.event.id = :eventId AND r.status = 'INSCRITO'")
-  Long countRegistrationsByEventId(@Param("eventId") UUID eventId);
+  // Métodos de busca por organizador
+  List<Event> findByOrganizerAndActiveTrue(User organizer);
 
-  @Query("SELECT e FROM Event e WHERE e.organizer.id = :organizerId AND e.active = true")
+  @Query("SELECT e FROM Event e " +
+      "WHERE e.organizer.id = :organizerId AND e.active = true")
   List<Event> findEventsByOrganizerId(@Param("organizerId") UUID organizerId);
 
-  @Query("SELECT COUNT(e) FROM Event e WHERE e.organizer.id = :organizerId AND e.active = true")
+  // Métodos de contagem
+  @Query("SELECT COUNT(r) FROM Registration r " +
+      "WHERE r.event.id = :eventId AND r.status = 'INSCRITO'")
+  Long countRegistrationsByEventId(@Param("eventId") UUID eventId);
+
+  @Query("SELECT COUNT(e) FROM Event e " +
+      "WHERE e.organizer.id = :organizerId AND e.active = true")
   Long countEventsByOrganizerId(@Param("organizerId") UUID organizerId);
 }

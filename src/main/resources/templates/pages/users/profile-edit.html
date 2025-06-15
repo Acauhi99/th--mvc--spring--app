@@ -124,14 +124,15 @@
       </div>
     </div>
 
-    <!-- Modal de confirmação para deletar conta -->
-    <div th:replace="~{common/delete-modal :: deleteModal(
+    <div
+      th:replace="~{common/delete-modal :: deleteModal(
       id='deleteAccountModal',
       title='Delete Account',
       message='Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.',
       deleteUrl='/users/delete/' + ${user.id},
       itemName=${user.name} + ' (' + ${user.email} + ')',
       buttonText='Delete My Account'
-    )}"></div>
+    )}"
+    ></div>
   </body>
 </html>

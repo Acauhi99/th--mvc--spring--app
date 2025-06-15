@@ -220,8 +220,6 @@
       document.addEventListener("DOMContentLoaded", function () {
         const startDateTime = document.getElementById("startDateTime");
         const endDateTime = document.getElementById("endDateTime");
-
-        // Define data mínima como agora
         const now = new Date();
         const localDateTime = new Date(
           now.getTime() - now.getTimezoneOffset() * 60000
@@ -230,7 +228,6 @@
           .slice(0, 16);
         startDateTime.min = localDateTime;
 
-        // Validação de data de fim
         startDateTime.addEventListener("change", function () {
           endDateTime.min = this.value;
           if (endDateTime.value && endDateTime.value < this.value) {

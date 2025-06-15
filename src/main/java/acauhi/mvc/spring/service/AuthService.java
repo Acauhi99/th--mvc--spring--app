@@ -15,9 +15,9 @@ public class AuthService {
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
 
+  // Operações de registro e autenticação
   public User registerUser(User user) {
     user.setPassword(passwordEncoder.encode(user.getPassword()));
-
     return userRepository.save(user);
   }
 

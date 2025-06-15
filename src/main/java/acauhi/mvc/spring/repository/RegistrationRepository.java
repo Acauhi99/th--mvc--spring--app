@@ -16,6 +16,7 @@ import java.util.UUID;
 @Repository
 public interface RegistrationRepository extends JpaRepository<Registration, UUID> {
 
+  // Métodos de busca básicos
   List<Registration> findByParticipant(User participant);
 
   List<Registration> findByEvent(Event event);
@@ -24,15 +25,30 @@ public interface RegistrationRepository extends JpaRepository<Registration, UUID
 
   Optional<Registration> findByEventAndParticipant(Event event, User participant);
 
+  // Métodos de contagem
   Long countByEventAndStatus(Event event, Registration.RegistrationStatus status);
 
-  @Query("SELECT COUNT(r) FROM Registration r JOIN r.event e WHERE e.organizer.id = :organizerId AND r.status = 'INSCRITO'")
+  // Métodos de análise para organizadores
+  @Query("SELECT COUNT(r) FROM Registration r " +
+      "JOIN r.event e " +
+      "WHERE e.organizer.id = :organizerId AND r.status = 'INSCRITO'")
   Long countTotalRegistrationsByOrganizerId(@Param("organizerId") UUID organizerId);
 
-  @Query("SELECT e.name, COUNT(r) FROM Registration r JOIN r.event e WHERE e.organizer.id = :organizerId AND r.status = 'INSCRITO' GROUP BY e.id, e.name ORDER BY COUNT(r) DESC")
+  @Query("SELECT e.name, COUNT(r) " +
+      "FROM Registration r " +
+      "JOIN r.event e " +
+      "WHERE e.organizer.id = :organizerId AND r.status = 'INSCRITO' " +
+      "GROUP BY e.id, e.name " +
+      "ORDER BY COUNT(r) DESC")
   List<Object[]> findRegistrationsCountByEventForOrganizer(@Param("organizerId") UUID organizerId);
 
-  @Query("SELECT EXTRACT(MONTH FROM r.registrationDate), COUNT(r) FROM Registration r JOIN r.event e WHERE e.organizer.id = :organizerId AND r.registrationDate >= :sixMonthsAgo GROUP BY EXTRACT(MONTH FROM r.registrationDate) ORDER BY EXTRACT(MONTH FROM r.registrationDate)")
-  List<Object[]> findRegistrationsByMonthForOrganizer(@Param("organizerId") UUID organizerId,
+  @Query("SELECT EXTRACT(MONTH FROM r.registrationDate), COUNT(r) " +
+      "FROM Registration r " +
+      "JOIN r.event e " +
+      "WHERE e.organizer.id = :organizerId AND r.registrationDate >= :sixMonthsAgo " +
+      "GROUP BY EXTRACT(MONTH FROM r.registrationDate) " +
+      "ORDER BY EXTRACT(MONTH FROM r.registrationDate)")
+  List<Object[]> findRegistrationsByMonthForOrganizer(
+      @Param("organizerId") UUID organizerId,
       @Param("sixMonthsAgo") LocalDateTime sixMonthsAgo);
 }

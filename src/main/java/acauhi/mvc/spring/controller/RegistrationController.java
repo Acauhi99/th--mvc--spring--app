@@ -28,34 +28,105 @@ public class RegistrationController {
   private final EventService eventService;
   private final UserService userService;
 
+  // Registration listing methods
   @GetMapping
   @PreAuthorize("hasAuthority('ROLE_ADMIN')")
   public String listRegistrations(Model model) {
     List<Registration> registrations = registrationService.findAll();
     List<Event> events = eventService.findAll();
-    
-    // Calcular estatísticas
+
     long confirmedCount = registrations.stream()
         .filter(r -> r.getStatus() == Registration.RegistrationStatus.CONFIRMADO)
         .count();
-    
+
     long pendingCount = registrations.stream()
         .filter(r -> r.getStatus() == Registration.RegistrationStatus.INSCRITO)
         .count();
-        
+
     long cancelledCount = registrations.stream()
         .filter(r -> r.getStatus() == Registration.RegistrationStatus.CANCELADO)
         .count();
-    
+
     model.addAttribute("registrations", registrations);
     model.addAttribute("events", events);
     model.addAttribute("confirmedCount", confirmedCount);
     model.addAttribute("pendingCount", pendingCount);
     model.addAttribute("cancelledCount", cancelledCount);
-    
+
     return "pages/registrations/list";
   }
 
+  @GetMapping("/my-registrations")
+  @PreAuthorize("hasAuthority('ROLE_PARTICIPANTE')")
+  public String myRegistrations(Model model, Authentication authentication) {
+    User user = userService.findByEmail(authentication.getName())
+        .orElseThrow(() -> new IllegalStateException("User not found"));
+
+    List<Registration> allRegistrations = registrationService.findByParticipant(user);
+    LocalDateTime now = LocalDateTime.now();
+
+    List<Registration> upcomingRegistrations = allRegistrations.stream()
+        .filter(r -> r.getEvent().getStartDateTime().isAfter(now))
+        .filter(r -> r.getStatus() != Registration.RegistrationStatus.CANCELADO)
+        .sorted((r1, r2) -> r1.getEvent().getStartDateTime().compareTo(r2.getEvent().getStartDateTime()))
+        .collect(Collectors.toList());
+
+    List<Registration> pastRegistrations = allRegistrations.stream()
+        .filter(r -> r.getEvent().getStartDateTime().isBefore(now))
+        .sorted((r1, r2) -> r2.getEvent().getStartDateTime().compareTo(r1.getEvent().getStartDateTime()))
+        .collect(Collectors.toList());
+
+    List<Registration> cancelledRegistrations = allRegistrations.stream()
+        .filter(r -> r.getStatus() == Registration.RegistrationStatus.CANCELADO)
+        .sorted((r1, r2) -> r2.getRegistrationDate().compareTo(r1.getRegistrationDate()))
+        .collect(Collectors.toList());
+
+    long totalRegistrations = allRegistrations.size();
+    long confirmedCount = allRegistrations.stream()
+        .filter(r -> r.getStatus() == Registration.RegistrationStatus.CONFIRMADO)
+        .count();
+    long attendedCount = allRegistrations.stream()
+        .filter(Registration::getAttended)
+        .count();
+    long upcomingCount = upcomingRegistrations.size();
+
+    model.addAttribute("allRegistrations", allRegistrations);
+    model.addAttribute("upcomingRegistrations", upcomingRegistrations);
+    model.addAttribute("pastRegistrations", pastRegistrations);
+    model.addAttribute("cancelledRegistrations", cancelledRegistrations);
+    model.addAttribute("totalRegistrations", totalRegistrations);
+    model.addAttribute("confirmedCount", confirmedCount);
+    model.addAttribute("attendedCount", attendedCount);
+    model.addAttribute("upcomingCount", upcomingCount);
+
+    return "pages/registrations/my-registrations";
+  }
+
+  @GetMapping("/event/{eventId}")
+  @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_ORGANIZADOR')")
+  public String registrationsByEvent(@PathVariable UUID eventId, Model model) {
+    Event event = eventService.findById(eventId)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid event Id: " + eventId));
+
+    List<Registration> registrations = registrationService.findByEvent(event);
+
+    long confirmedCount = registrations.stream()
+        .filter(r -> r.getStatus() == Registration.RegistrationStatus.CONFIRMADO)
+        .count();
+
+    long pendingCount = registrations.stream()
+        .filter(r -> r.getStatus() == Registration.RegistrationStatus.INSCRITO)
+        .count();
+
+    model.addAttribute("event", event);
+    model.addAttribute("registrations", registrations);
+    model.addAttribute("confirmedCount", confirmedCount);
+    model.addAttribute("pendingCount", pendingCount);
+
+    return "pages/registrations/by-event";
+  }
+
+  // CRUD methods
   @GetMapping("/create")
   @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_ORGANIZADOR')")
   public String createRegistrationForm(Model model) {
@@ -89,7 +160,8 @@ public class RegistrationController {
 
   @PostMapping("/edit/{id}")
   @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_ORGANIZADOR')")
-  public String editRegistration(@PathVariable UUID id, @ModelAttribute Registration registration, RedirectAttributes redirectAttributes) {
+  public String editRegistration(@PathVariable UUID id, @ModelAttribute Registration registration,
+      RedirectAttributes redirectAttributes) {
     registration.setId(id);
     registrationService.save(registration);
     redirectAttributes.addFlashAttribute("successMessage", "Registration updated successfully");
@@ -104,96 +176,22 @@ public class RegistrationController {
     return "redirect:/registrations";
   }
 
-  @GetMapping("/my-registrations")
-  @PreAuthorize("hasAuthority('ROLE_PARTICIPANTE')")
-  public String myRegistrations(Model model, Authentication authentication) {
-    User user = userService.findByEmail(authentication.getName())
-        .orElseThrow(() -> new IllegalStateException("User not found"));
-    
-    List<Registration> allRegistrations = registrationService.findByParticipant(user);
-    
-    // Separar registrações em categorias
-    LocalDateTime now = LocalDateTime.now();
-    
-    List<Registration> upcomingRegistrations = allRegistrations.stream()
-        .filter(r -> r.getEvent().getStartDateTime().isAfter(now))
-        .filter(r -> r.getStatus() != Registration.RegistrationStatus.CANCELADO)
-        .sorted((r1, r2) -> r1.getEvent().getStartDateTime().compareTo(r2.getEvent().getStartDateTime()))
-        .collect(Collectors.toList());
-    
-    List<Registration> pastRegistrations = allRegistrations.stream()
-        .filter(r -> r.getEvent().getStartDateTime().isBefore(now))
-        .sorted((r1, r2) -> r2.getEvent().getStartDateTime().compareTo(r1.getEvent().getStartDateTime()))
-        .collect(Collectors.toList());
-    
-    List<Registration> cancelledRegistrations = allRegistrations.stream()
-        .filter(r -> r.getStatus() == Registration.RegistrationStatus.CANCELADO)
-        .sorted((r1, r2) -> r2.getRegistrationDate().compareTo(r1.getRegistrationDate()))
-        .collect(Collectors.toList());
-    
-    // Calcular estatísticas
-    long totalRegistrations = allRegistrations.size();
-    long confirmedCount = allRegistrations.stream()
-        .filter(r -> r.getStatus() == Registration.RegistrationStatus.CONFIRMADO)
-        .count();
-    long attendedCount = allRegistrations.stream()
-        .filter(r -> r.getAttended())
-        .count();
-    long upcomingCount = upcomingRegistrations.size();
-    
-    model.addAttribute("allRegistrations", allRegistrations);
-    model.addAttribute("upcomingRegistrations", upcomingRegistrations);
-    model.addAttribute("pastRegistrations", pastRegistrations);
-    model.addAttribute("cancelledRegistrations", cancelledRegistrations);
-    model.addAttribute("totalRegistrations", totalRegistrations);
-    model.addAttribute("confirmedCount", confirmedCount);
-    model.addAttribute("attendedCount", attendedCount);
-    model.addAttribute("upcomingCount", upcomingCount);
-    
-    return "pages/registrations/my-registrations";
-  }
-
-  @GetMapping("/event/{eventId}")
-  @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_ORGANIZADOR')")
-  public String registrationsByEvent(@PathVariable UUID eventId, Model model) {
-    Event event = eventService.findById(eventId)
-        .orElseThrow(() -> new IllegalArgumentException("Invalid event Id: " + eventId));
-    
-    List<Registration> registrations = registrationService.findByEvent(event);
-    
-    // Calcular estatísticas
-    long confirmedCount = registrations.stream()
-        .filter(r -> r.getStatus() == Registration.RegistrationStatus.CONFIRMADO)
-        .count();
-    
-    long pendingCount = registrations.stream()
-        .filter(r -> r.getStatus() == Registration.RegistrationStatus.INSCRITO)
-        .count();
-    
-    model.addAttribute("event", event);
-    model.addAttribute("registrations", registrations);
-    model.addAttribute("confirmedCount", confirmedCount);
-    model.addAttribute("pendingCount", pendingCount);
-    
-    return "pages/registrations/by-event";
-  }
-
+  // Status update methods
   @PostMapping("/confirm/{id}")
   @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_ORGANIZADOR')")
   public String confirmRegistration(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
     Registration registration = registrationService.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Invalid registration Id: " + id));
-    
+
     registration.setStatus(Registration.RegistrationStatus.CONFIRMADO);
     registrationService.save(registration);
-    
+
     redirectAttributes.addFlashAttribute("successMessage", "Registration confirmed successfully!");
-    
-    // Verifica se veio da lista geral ou da página do evento
-    String referer = redirectAttributes.getFlashAttributes().get("referer") != null ? 
-        (String) redirectAttributes.getFlashAttributes().get("referer") : 
-        "/registrations";
-    
+
+    String referer = redirectAttributes.getFlashAttributes().get("referer") != null
+        ? (String) redirectAttributes.getFlashAttributes().get("referer")
+        : "/registrations";
+
     if (referer.contains("/registrations/event/")) {
       return "redirect:/registrations/event/" + registration.getEvent().getId();
     }
@@ -205,17 +203,16 @@ public class RegistrationController {
   public String cancelRegistration(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
     Registration registration = registrationService.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Invalid registration Id: " + id));
-    
+
     registration.setStatus(Registration.RegistrationStatus.CANCELADO);
     registrationService.save(registration);
-    
+
     redirectAttributes.addFlashAttribute("successMessage", "Registration cancelled successfully!");
-    
-    // Verifica se veio da lista geral ou da página do evento
-    String referer = redirectAttributes.getFlashAttributes().get("referer") != null ? 
-        (String) redirectAttributes.getFlashAttributes().get("referer") : 
-        "/registrations";
-    
+
+    String referer = redirectAttributes.getFlashAttributes().get("referer") != null
+        ? (String) redirectAttributes.getFlashAttributes().get("referer")
+        : "/registrations";
+
     if (referer.contains("/registrations/event/")) {
       return "redirect:/registrations/event/" + registration.getEvent().getId();
     }
@@ -227,67 +224,62 @@ public class RegistrationController {
   public String toggleAttendance(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
     Registration registration = registrationService.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Invalid registration Id: " + id));
-    
+
     registration.setAttended(!registration.getAttended());
     registrationService.save(registration);
-    
-    String message = registration.getAttended() ? 
-        "Participant marked as present!" : 
-        "Participant marked as absent!";
-    
+
+    String message = registration.getAttended() ? "Participant marked as present!" : "Participant marked as absent!";
+
     redirectAttributes.addFlashAttribute("successMessage", message);
-    
-    // Verifica se veio da lista geral ou da página do evento
-    String referer = redirectAttributes.getFlashAttributes().get("referer") != null ? 
-        (String) redirectAttributes.getFlashAttributes().get("referer") : 
-        "/registrations";
-    
+
+    String referer = redirectAttributes.getFlashAttributes().get("referer") != null
+        ? (String) redirectAttributes.getFlashAttributes().get("referer")
+        : "/registrations";
+
     if (referer.contains("/registrations/event/")) {
       return "redirect:/registrations/event/" + registration.getEvent().getId();
     }
     return "redirect:/registrations";
   }
 
+  // Participant actions
   @PostMapping("/cancel-my-registration/{id}")
   @PreAuthorize("hasAuthority('ROLE_PARTICIPANTE')")
-  public String cancelMyRegistration(@PathVariable UUID id, Authentication authentication, 
-                                    RedirectAttributes redirectAttributes) {
+  public String cancelMyRegistration(@PathVariable UUID id, Authentication authentication,
+      RedirectAttributes redirectAttributes) {
     try {
       User user = userService.findByEmail(authentication.getName())
           .orElseThrow(() -> new IllegalStateException("User not found"));
-      
+
       Registration registration = registrationService.findById(id)
           .orElseThrow(() -> new IllegalArgumentException("Invalid registration Id: " + id));
-      
-      // Verificar se a inscrição pertence ao usuário atual
+
       if (!registration.getParticipant().getId().equals(user.getId())) {
         redirectAttributes.addFlashAttribute("errorMessage", "You can only cancel your own registrations!");
         return "redirect:/registrations/my-registrations";
       }
-      
-      // Verificar se o evento já passou
+
       if (registration.getEvent().getStartDateTime().isBefore(LocalDateTime.now())) {
         redirectAttributes.addFlashAttribute("errorMessage", "Cannot cancel registration for past events!");
         return "redirect:/registrations/my-registrations";
       }
-      
-      // Verificar se já está cancelado
+
       if (registration.getStatus() == Registration.RegistrationStatus.CANCELADO) {
         redirectAttributes.addFlashAttribute("errorMessage", "Registration is already cancelled!");
         return "redirect:/registrations/my-registrations";
       }
-      
+
       registration.setStatus(Registration.RegistrationStatus.CANCELADO);
       registrationService.save(registration);
-      
-      redirectAttributes.addFlashAttribute("successMessage", 
+
+      redirectAttributes.addFlashAttribute("successMessage",
           "Registration for \"" + registration.getEvent().getName() + "\" has been cancelled successfully!");
-      
+
     } catch (Exception e) {
-      redirectAttributes.addFlashAttribute("errorMessage", 
+      redirectAttributes.addFlashAttribute("errorMessage",
           "Error cancelling registration: " + e.getMessage());
     }
-    
+
     return "redirect:/registrations/my-registrations";
   }
 }

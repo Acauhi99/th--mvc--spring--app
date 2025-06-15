@@ -225,7 +225,6 @@
                 </div>
               </div>
 
-              <!-- Modal de confirmação de registro -->
               <div
                 sec:authorize="hasAuthority('ROLE_PARTICIPANTE')"
                 th:if="${userRegistrations == null or !userRegistrations[event.id]}"
@@ -313,7 +312,6 @@
                 </div>
               </div>
 
-              <!-- Modal de deleção de evento -->
               <div
                 th:if="${#authentication.name == event.organizer.email or #authorization.expression('hasAuthority(''ROLE_ADMIN'')')}"
                 th:replace="~{common/delete-modal :: deleteModal(
@@ -328,7 +326,6 @@
             </div>
           </div>
 
-          <!-- Paginação (se necessário no futuro) -->
           <div class="row mt-4" th:if="${#lists.size(events) > 12}">
             <div class="col-12">
               <nav aria-label="Events pagination">
@@ -353,7 +350,6 @@
       </div>
     </div>
 
-    <!-- JavaScript para filtros e busca -->
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const searchInput = document.getElementById("searchInput");

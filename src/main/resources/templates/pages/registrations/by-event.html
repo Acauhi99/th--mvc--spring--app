@@ -89,7 +89,6 @@
             </div>
           </div>
 
-          <!-- Event Info Alert -->
           <div class="alert alert-info" role="alert">
             <div class="d-flex align-items-center">
               <div class="me-3">
@@ -112,7 +111,6 @@
             </div>
           </div>
 
-          <!-- Filters -->
           <div class="row mb-4">
             <div class="col-md-8">
               <div class="input-group">
@@ -142,7 +140,6 @@
             </div>
           </div>
 
-          <!-- Registrations List -->
           <div class="row">
             <div
               th:if="${#lists.isEmpty(registrations)}"
@@ -298,7 +295,6 @@
             </div>
           </div>
 
-          <!-- Navigation -->
           <div class="row mt-4">
             <div class="col-12">
               <div class="d-flex justify-content-between align-items-center">
@@ -327,7 +323,6 @@
       </div>
     </div>
 
-    <!-- Modais de Cancelamento para cada inscrição -->
     <div th:each="registration : ${registrations}">
       <div
         th:replace="~{common/delete-modal :: deleteModal(
@@ -341,7 +336,6 @@
       ></div>
     </div>
 
-    <!-- JavaScript para filtros -->
     <script>
       function filterRegistrations() {
         const searchTerm = document

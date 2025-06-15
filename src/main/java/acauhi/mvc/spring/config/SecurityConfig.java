@@ -29,28 +29,38 @@ public class SecurityConfig {
   SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
         .authorizeHttpRequests(authorize -> authorize
+            // Recursos públicos
             .requestMatchers("/css/**", "/js/**", "/images/**", "/styles.css").permitAll()
             .requestMatchers("/", "/login", "/register", "/error").permitAll()
-            .requestMatchers("/users/dashboard").hasAuthority("ROLE_ADMIN")
-            .requestMatchers("/users/create").hasAuthority("ROLE_ADMIN")
-            .requestMatchers("/users/edit/**").authenticated()
-            .requestMatchers("/users/delete/**").authenticated()
-            .requestMatchers("/users/delete/**").authenticated()
-            .requestMatchers("/users/profile/**").authenticated()
-            .requestMatchers("/users/settings").authenticated()
             .requestMatchers("/events").permitAll()
             .requestMatchers("/events/view/**").permitAll()
+
+            // Rotas administrativas
+            .requestMatchers("/users/dashboard").hasAuthority("ROLE_ADMIN")
+            .requestMatchers("/users/create").hasAuthority("ROLE_ADMIN")
+            .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
+
+            // Rotas de gerenciamento de eventos
             .requestMatchers("/events/create").hasAnyAuthority("ROLE_ADMIN", "ROLE_ORGANIZADOR")
             .requestMatchers("/events/edit/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_ORGANIZADOR")
             .requestMatchers("/events/delete/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_ORGANIZADOR")
             .requestMatchers("/events/my-events").hasAnyAuthority("ROLE_ADMIN", "ROLE_ORGANIZADOR")
+
+            // Rotas de usuários autenticados
+            .requestMatchers("/users/edit/**").authenticated()
+            .requestMatchers("/users/delete/**").authenticated()
+            .requestMatchers("/users/profile/**").authenticated()
+            .requestMatchers("/users/settings").authenticated()
             .requestMatchers("/registrations/**").authenticated()
-            .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
+
+            // Fallback
             .anyRequest().authenticated())
+
         .formLogin(form -> form
             .loginPage("/login")
             .defaultSuccessUrl("/", true)
             .permitAll())
+
         .logout(logout -> logout
             .logoutSuccessUrl("/")
             .permitAll());

@@ -39,7 +39,8 @@ public class AuthController {
   }
 
   @PostMapping("/register")
-  public String registerUser(@Valid @ModelAttribute User user,
+  public String registerUser(
+      @Valid @ModelAttribute User user,
       BindingResult result,
       RedirectAttributes redirectAttributes) {
 

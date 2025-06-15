@@ -17,12 +17,22 @@ public class EventService {
 
   private final EventRepository eventRepository;
 
+  // Operações de busca gerais
   public List<Event> findAll() {
     return eventRepository.findAll();
   }
 
+  public Optional<Event> findById(UUID id) {
+    return eventRepository.findById(id);
+  }
+
+  // Operações de busca específicas
   public List<Event> findActiveEvents() {
     return eventRepository.findByActiveTrue();
+  }
+
+  public List<Event> findUpcomingEvents() {
+    return eventRepository.findByActiveTrueAndStartDateTimeAfter(LocalDateTime.now());
   }
 
   public List<Event> findEventsByOrganizer(User organizer) {
@@ -33,18 +43,12 @@ public class EventService {
     return eventRepository.findEventsByOrganizerId(organizerId);
   }
 
-  public List<Event> findUpcomingEvents() {
-    return eventRepository.findByActiveTrueAndStartDateTimeAfter(LocalDateTime.now());
-  }
-
-  public Optional<Event> findById(UUID id) {
-    return eventRepository.findById(id);
-  }
-
+  // Operações de persistência
   public Event save(Event event) {
     return eventRepository.save(event);
   }
 
+  // Soft delete - marca evento como inativo em vez de excluir
   public void deleteById(UUID id) {
     Optional<Event> event = eventRepository.findById(id);
     if (event.isPresent()) {
@@ -54,6 +58,7 @@ public class EventService {
     }
   }
 
+  // Métricas e operações de contagem
   public Long countRegistrationsByEventId(UUID eventId) {
     return eventRepository.countRegistrationsByEventId(eventId);
   }

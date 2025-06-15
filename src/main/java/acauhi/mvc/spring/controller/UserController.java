@@ -22,6 +22,29 @@ public class UserController {
 
   private final UserService userService;
 
+  // Admin dashboard methods
+  @GetMapping("/dashboard")
+  @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+  public String dashboard(Model model) {
+    List<User> users = userService.findAll();
+
+    Map<User.UserType, Long> userTypeCount = users.stream()
+        .collect(Collectors.groupingBy(User::getUserType, Collectors.counting()));
+
+    List<User> recentUsers = users.stream()
+        .sorted((u1, u2) -> u2.getId().compareTo(u1.getId()))
+        .limit(6)
+        .collect(Collectors.toList());
+
+    model.addAttribute("users", users);
+    model.addAttribute("recentUsers", recentUsers);
+    model.addAttribute("totalUsers", users.size());
+    model.addAttribute("userTypeCount", userTypeCount);
+
+    return "pages/users/dashboard";
+  }
+
+  // User creation methods
   @GetMapping("/create")
   @PreAuthorize("hasAuthority('ROLE_ADMIN')")
   public String createUserForm(Model model) {
@@ -38,6 +61,7 @@ public class UserController {
     return "redirect:/users/dashboard";
   }
 
+  // User edit methods
   @GetMapping("/edit/{id}")
   @PreAuthorize("@securityActionChecker.isAdminOrSelf(authentication, #id)")
   public String editUserForm(@PathVariable UUID id, Model model) {
@@ -46,7 +70,7 @@ public class UserController {
 
     model.addAttribute("user", user);
     model.addAttribute("userTypes", User.UserType.values());
-    return "pages/users/edit"; // Usando o novo template
+    return "pages/users/edit";
   }
 
   @PostMapping("/edit/{id}")
@@ -68,6 +92,7 @@ public class UserController {
     }
   }
 
+  // User deletion method
   @PostMapping("/delete/{id}")
   @PreAuthorize("@securityActionChecker.canDeleteUser(authentication, #id)")
   public String deleteUser(@PathVariable UUID id, RedirectAttributes redirectAttributes,
@@ -92,6 +117,7 @@ public class UserController {
     }
   }
 
+  // User profile methods
   @GetMapping("/profile")
   public String viewProfile(Model model, Authentication authentication) {
     User user = userService.findByEmail(authentication.getName())
@@ -130,26 +156,5 @@ public class UserController {
     userService.deleteById(user.getId());
     redirectAttributes.addFlashAttribute("successMessage", "Account deleted successfully");
     return "redirect:/logout";
-  }
-
-  @GetMapping("/dashboard")
-  @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-  public String dashboard(Model model) {
-    List<User> users = userService.findAll();
-
-    Map<User.UserType, Long> userTypeCount = users.stream()
-        .collect(Collectors.groupingBy(User::getUserType, Collectors.counting()));
-
-    List<User> recentUsers = users.stream()
-        .sorted((u1, u2) -> u2.getId().compareTo(u1.getId()))
-        .limit(6)
-        .collect(Collectors.toList());
-
-    model.addAttribute("users", users);
-    model.addAttribute("recentUsers", recentUsers);
-    model.addAttribute("totalUsers", users.size());
-    model.addAttribute("userTypeCount", userTypeCount);
-
-    return "pages/users/dashboard";
   }
 }

@@ -30,15 +30,14 @@ public class EventController {
   private final UserService userService;
   private final RegistrationService registrationService;
 
+  // Event viewing methods
   @GetMapping
   public String listEvents(Model model, Authentication authentication) {
     List<Event> events = eventService.findActiveEvents();
-    
     Map<UUID, Long> registrationCounts = events.stream()
         .collect(Collectors.toMap(
             Event::getId,
-            event -> registrationService.countByEventAndStatus(event, Registration.RegistrationStatus.INSCRITO)
-        ));
+            event -> registrationService.countByEventAndStatus(event, Registration.RegistrationStatus.INSCRITO)));
 
     if (authentication != null && authentication.getAuthorities().stream()
         .anyMatch(auth -> auth.getAuthority().equals("ROLE_PARTICIPANTE"))) {
@@ -47,66 +46,72 @@ public class EventController {
         Map<UUID, Boolean> userRegistrations = events.stream()
             .collect(Collectors.toMap(
                 Event::getId,
-                event -> registrationService.findByEventAndParticipant(event, currentUser).isPresent()
-            ));
+                event -> {
+                  Optional<Registration> reg = registrationService.findByEventAndParticipant(event, currentUser);
+                  return reg.isPresent() && reg.get().getStatus() != Registration.RegistrationStatus.CANCELADO;
+                }));
         model.addAttribute("userRegistrations", userRegistrations);
       }
     }
-    
+
     model.addAttribute("events", events);
     model.addAttribute("registrationCounts", registrationCounts);
     return "pages/events/list";
   }
 
-  @PostMapping("/register/{eventId}")
-  @PreAuthorize("hasAuthority('ROLE_PARTICIPANTE')")
-  public String registerForEvent(@PathVariable UUID eventId, Authentication authentication, 
-                                RedirectAttributes redirectAttributes) {
-    try {
-      Event event = eventService.findById(eventId)
-          .orElseThrow(() -> new IllegalArgumentException("Event not found"));
-      
-      User participant = userService.findByEmail(authentication.getName())
-          .orElseThrow(() -> new IllegalStateException("User not found"));
+  @GetMapping("/view/{id}")
+  public String viewEvent(@PathVariable UUID id, Model model, Authentication authentication) {
+    Event event = eventService.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid event Id: " + id));
 
-      Optional<Registration> existingRegistration = registrationService.findByEventAndParticipant(event, participant);
-      if (existingRegistration.isPresent()) {
-        redirectAttributes.addFlashAttribute("errorMessage", "You are already registered for this event!");
-        return "redirect:/events";
+    Long registrationCount = registrationService.countByEventAndStatus(event, Registration.RegistrationStatus.INSCRITO);
+    int availableVacancies = Math.max(0, event.getTotalVacancies() - registrationCount.intValue());
+
+    boolean isRegistered = false;
+    if (authentication != null && authentication.getAuthorities().stream()
+        .anyMatch(auth -> auth.getAuthority().equals("ROLE_PARTICIPANTE"))) {
+      User currentUser = userService.findByEmail(authentication.getName()).orElse(null);
+      if (currentUser != null) {
+        Optional<Registration> registration = registrationService.findByEventAndParticipant(event, currentUser);
+        isRegistered = registration.isPresent() &&
+            registration.get().getStatus() != Registration.RegistrationStatus.CANCELADO;
       }
-      
-      if (event.getStartDateTime().isBefore(LocalDateTime.now())) {
-        redirectAttributes.addFlashAttribute("errorMessage", "Cannot register for past events!");
-        return "redirect:/events";
-      }
-      
-      long currentRegistrations = registrationService.countByEventAndStatus(event, Registration.RegistrationStatus.INSCRITO);
-      if (currentRegistrations >= event.getTotalVacancies()) {
-        redirectAttributes.addFlashAttribute("errorMessage", "Event is full! No vacancies available.");
-        return "redirect:/events";
-      }
-      
-      Registration registration = Registration.builder()
-          .event(event)
-          .participant(participant)
-          .status(Registration.RegistrationStatus.INSCRITO)
-          .registrationDate(LocalDateTime.now())
-          .attended(false)
-          .build();
-      
-      registrationService.save(registration);
-      
-      redirectAttributes.addFlashAttribute("successMessage", 
-          "Successfully registered for \"" + event.getName() + "\"!");
-      
-    } catch (Exception e) {
-      redirectAttributes.addFlashAttribute("errorMessage", 
-          "Error registering for event: " + e.getMessage());
     }
-    
-    return "redirect:/events";
+
+    model.addAttribute("event", event);
+    model.addAttribute("registrationCount", registrationCount);
+    model.addAttribute("registrationsCount", registrationCount);
+    model.addAttribute("availableVacancies", availableVacancies);
+    model.addAttribute("isRegistered", isRegistered);
+
+    return "pages/events/view";
   }
 
+  // Organizer-specific methods
+  @GetMapping("/my-events")
+  @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_ORGANIZADOR')")
+  public String myEvents(Model model, Authentication authentication) {
+    User organizer = userService.findByEmail(authentication.getName())
+        .orElseThrow(() -> new IllegalStateException("User not found"));
+
+    List<Event> events;
+    if (organizer.getUserType() == User.UserType.ADMIN) {
+      events = eventService.findActiveEvents();
+    } else {
+      events = eventService.findEventsByOrganizer(organizer);
+    }
+
+    Map<UUID, Long> registrationCounts = events.stream()
+        .collect(Collectors.toMap(
+            Event::getId,
+            event -> registrationService.countByEventAndStatus(event, Registration.RegistrationStatus.INSCRITO)));
+
+    model.addAttribute("events", events);
+    model.addAttribute("registrationCounts", registrationCounts);
+    return "pages/events/my-events";
+  }
+
+  // Event creation methods
   @GetMapping("/create")
   @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_ORGANIZADOR')")
   public String createEventForm(Model model) {
@@ -146,6 +151,7 @@ public class EventController {
     }
   }
 
+  // Event edit methods
   @GetMapping("/edit/{id}")
   @PreAuthorize("@securityActionChecker.canModifyEvent(authentication, #id)")
   public String editEventForm(@PathVariable UUID id, Model model) {
@@ -183,38 +189,7 @@ public class EventController {
     }
   }
 
-  @GetMapping("/view/{id}")
-  public String viewEvent(@PathVariable UUID id, Model model, Authentication authentication) {
-    Event event = eventService.findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("Invalid event Id: " + id));
-    
-    Long registrationCount = registrationService.countByEventAndStatus(event, Registration.RegistrationStatus.INSCRITO);
-    
-    // Calcular vagas disponíveis
-    int availableVacancies = Math.max(0, event.getTotalVacancies() - registrationCount.intValue());
-    
-    // Verificar se o usuário atual está ATIVAMENTE registrado (não cancelado)
-    boolean isRegistered = false;
-    if (authentication != null && authentication.getAuthorities().stream()
-        .anyMatch(auth -> auth.getAuthority().equals("ROLE_PARTICIPANTE"))) {
-      User currentUser = userService.findByEmail(authentication.getName()).orElse(null);
-      if (currentUser != null) {
-        Optional<Registration> registration = registrationService.findByEventAndParticipant(event, currentUser);
-        // Considera registrado apenas se existir E não estiver cancelado
-        isRegistered = registration.isPresent() && 
-                      registration.get().getStatus() != Registration.RegistrationStatus.CANCELADO;
-      }
-    }
-    
-    model.addAttribute("event", event);
-    model.addAttribute("registrationCount", registrationCount);
-    model.addAttribute("registrationsCount", registrationCount); // Para compatibilidade com o template
-    model.addAttribute("availableVacancies", availableVacancies);
-    model.addAttribute("isRegistered", isRegistered);
-    
-    return "pages/events/view";
-  }
-
+  // Event delete method
   @PostMapping("/delete/{id}")
   @PreAuthorize("@securityActionChecker.canModifyEvent(authentication, #id)")
   public String deleteEvent(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
@@ -227,27 +202,64 @@ public class EventController {
     return "redirect:/events";
   }
 
-  @GetMapping("/my-events")
-  @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_ORGANIZADOR')")
-  public String myEvents(Model model, Authentication authentication) {
-    User organizer = userService.findByEmail(authentication.getName())
-        .orElseThrow(() -> new IllegalStateException("User not found"));
+  // Registration methods
+  @PostMapping("/register/{eventId}")
+  @PreAuthorize("hasAuthority('ROLE_PARTICIPANTE')")
+  public String registerForEvent(@PathVariable UUID eventId, Authentication authentication,
+      RedirectAttributes redirectAttributes) {
+    try {
+      Event event = eventService.findById(eventId)
+          .orElseThrow(() -> new IllegalArgumentException("Event not found"));
 
-    List<Event> events;
-    if (organizer.getUserType() == User.UserType.ADMIN) {
-      events = eventService.findActiveEvents();
-    } else {
-      events = eventService.findEventsByOrganizer(organizer);
+      User participant = userService.findByEmail(authentication.getName())
+          .orElseThrow(() -> new IllegalStateException("User not found"));
+
+      Optional<Registration> existingRegistration = registrationService.findByEventAndParticipant(event, participant);
+
+      if (existingRegistration.isPresent() &&
+          existingRegistration.get().getStatus() != Registration.RegistrationStatus.CANCELADO) {
+        redirectAttributes.addFlashAttribute("errorMessage", "You are already registered for this event!");
+        return "redirect:/events";
+      }
+
+      if (event.getStartDateTime().isBefore(LocalDateTime.now())) {
+        redirectAttributes.addFlashAttribute("errorMessage", "Cannot register for past events!");
+        return "redirect:/events";
+      }
+
+      long currentRegistrations = registrationService.countByEventAndStatus(event,
+          Registration.RegistrationStatus.INSCRITO);
+      if (currentRegistrations >= event.getTotalVacancies()) {
+        redirectAttributes.addFlashAttribute("errorMessage", "Event is full! No vacancies available.");
+        return "redirect:/events";
+      }
+
+      if (existingRegistration.isPresent()) {
+        Registration registration = existingRegistration.get();
+        registration.setStatus(Registration.RegistrationStatus.INSCRITO);
+        registration.setRegistrationDate(LocalDateTime.now());
+        registration.setAttended(false);
+        registrationService.save(registration);
+      } else {
+        Registration registration = Registration.builder()
+            .event(event)
+            .participant(participant)
+            .status(Registration.RegistrationStatus.INSCRITO)
+            .registrationDate(LocalDateTime.now())
+            .attended(false)
+            .build();
+
+        registrationService.save(registration);
+      }
+
+      redirectAttributes.addFlashAttribute("successMessage",
+          "Successfully registered for \"" + event.getName() + "\"!");
+
+    } catch (Exception e) {
+      redirectAttributes.addFlashAttribute("errorMessage",
+          "Error registering for event: " + e.getMessage());
     }
 
-    Map<UUID, Long> registrationCounts = events.stream()
-        .collect(Collectors.toMap(
-            Event::getId,
-            event -> registrationService.countByEventAndStatus(event, Registration.RegistrationStatus.INSCRITO)
-        ));
-
-    model.addAttribute("events", events);
-    model.addAttribute("registrationCounts", registrationCounts);
-    return "pages/events/my-events";
+    return "redirect:/events";
   }
 }

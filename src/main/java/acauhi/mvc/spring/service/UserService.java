@@ -20,6 +20,7 @@ public class UserService {
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
 
+  // Operações de busca
   public List<User> findAll() {
     return userRepository.findAll();
   }
@@ -32,6 +33,7 @@ public class UserService {
     return userRepository.findByEmail(email);
   }
 
+  // Operações de persistência
   public User save(User user) {
     if (user.getId() != null && (user.getPassword() == null || user.getPassword().trim().isEmpty())) {
       User existingUser = findById(user.getId()).orElseThrow();
@@ -46,6 +48,7 @@ public class UserService {
     userRepository.deleteById(id);
   }
 
+  // Operações específicas de negócio
   public User updateUser(User updatedUser, String newPassword) {
     User existingUser = findById(updatedUser.getId())
         .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + updatedUser.getId()));
@@ -64,6 +67,7 @@ public class UserService {
     return userRepository.save(existingUser);
   }
 
+  // Métodos auxiliares
   private boolean hasAdminAuthority() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     return authentication != null &&

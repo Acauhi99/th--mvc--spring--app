@@ -10,9 +10,11 @@ import java.util.UUID;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
+  // Métodos de busca básicos
   Optional<User> findByEmail(String email);
 
   List<User> findByUserType(User.UserType userType);
 
+  // Métodos de contagem
   long countByUserType(User.UserType userType);
 }
