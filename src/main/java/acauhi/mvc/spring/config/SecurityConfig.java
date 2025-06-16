@@ -46,6 +46,9 @@ public class SecurityConfig {
             .requestMatchers("/events/delete/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_ORGANIZADOR")
             .requestMatchers("/events/my-events").hasAnyAuthority("ROLE_ADMIN", "ROLE_ORGANIZADOR")
 
+            // Rota de métricas
+            .requestMatchers("/metrics").hasAnyAuthority("ROLE_ADMIN", "ROLE_ORGANIZADOR")
+
             // Rotas de usuários autenticados
             .requestMatchers("/users/edit/**").authenticated()
             .requestMatchers("/users/delete/**").authenticated()

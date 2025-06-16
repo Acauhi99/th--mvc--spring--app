@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+  th:replace="~{layout/main :: html(~{::title}, ~{::body})}"
+>
+  <head>
+    <title>Metrics & Reports - Event Management</title>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <!-- Page Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h1 class="h2 mb-1">
+            <i class="bi bi-graph-up text-primary me-2"></i>
+            Metrics & Reports
+          </h1>
+          <p class="text-muted mb-0">Analytics and insights for your events</p>
+        </div>
+      </div>
+
+      <!-- Statistics Cards -->
+      <div class="row g-4 mb-4">
+        <div class="col-md-3">
+          <div class="card border-0 shadow-sm h-100 stats-card">
+            <div class="card-body text-center">
+              <div class="stats-icon bg-primary bg-opacity-10 mb-3 mx-auto">
+                <i class="bi bi-calendar-event text-primary"></i>
+              </div>
+              <h3 class="h2 fw-bold text-primary mb-1" th:text="${totalEvents}">0</h3>
+              <p class="text-muted mb-0 small">Total Events</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="card border-0 shadow-sm h-100 stats-card">
+            <div class="card-body text-center">
+              <div class="stats-icon bg-success bg-opacity-10 mb-3 mx-auto">
+                <i class="bi bi-people text-success"></i>
+              </div>
+              <h3 class="h2 fw-bold text-success mb-1" th:text="${totalRegistrations}">0</h3>
+              <p class="text-muted mb-0 small">Total Registrations</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="card border-0 shadow-sm h-100 stats-card">
+            <div class="card-body text-center">
+              <div class="stats-icon bg-warning bg-opacity-10 mb-3 mx-auto">
+                <i class="bi bi-graph-up-arrow text-warning"></i>
+              </div>
+              <h3 class="h2 fw-bold text-warning mb-1" th:text="${averageRegistrationsPerEvent}">0</h3>
+              <p class="text-muted mb-0 small">Avg. Registrations/Event</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="card border-0 shadow-sm h-100 stats-card">
+            <div class="card-body text-center">
+              <div class="stats-icon bg-info bg-opacity-10 mb-3 mx-auto">
+                <i class="bi bi-trophy text-info"></i>
+              </div>
+              <h3 class="h2 fw-bold text-info mb-1">100%</h3>
+              <p class="text-muted mb-0 small">Success Rate</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="row g-4">
+        <!-- Registrations by Event Chart -->
+        <div class="col-lg-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-bottom">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-bar-chart-line text-primary me-2"></i>
+                Registrations by Event
+              </h5>
+            </div>
+            <div class="card-body">
+              <div style="position: relative; height: 300px;">
+                <canvas id="registrationsByEventChart"></canvas>
+              </div>
+              <div th:if="${#lists.isEmpty(eventNamesJson) or eventNamesJson == '[]'}" class="text-center py-4">
+                <i class="bi bi-info-circle text-muted"></i>
+                <p class="text-muted mb-0">No event data available</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monthly Registrations Chart -->
+        <div class="col-lg-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-bottom">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-graph-up text-success me-2"></i>
+                Monthly Registrations Trend
+              </h5>
+            </div>
+            <div class="card-body">
+              <div style="position: relative; height: 300px;">
+                <canvas id="monthlyRegistrationsChart"></canvas>
+              </div>
+              <div th:if="${#lists.isEmpty(monthNamesJson) or monthNamesJson == '[]'}" class="text-center py-4">
+                <i class="bi bi-info-circle text-muted"></i>
+                <p class="text-muted mb-0">No monthly data available</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Information -->
+      <div class="row g-4 mt-2">
+        <div class="col-12">
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-info-circle text-info me-2"></i>
+                About Your Metrics
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="d-flex align-items-start mb-3">
+                    <div class="flex-shrink-0">
+                      <i class="bi bi-check-circle-fill text-success me-3 mt-1"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-1">Total Events</h6>
+                      <p class="text-muted small mb-0">Number of active events you've organized</p>
+                    </div>
+                  </div>
+                  <div class="d-flex align-items-start mb-3">
+                    <div class="flex-shrink-0">
+                      <i class="bi bi-people-fill text-primary me-3 mt-1"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-1">Total Registrations</h6>
+                      <p class="text-muted small mb-0">Total number of confirmed registrations</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="d-flex align-items-start mb-3">
+                    <div class="flex-shrink-0">
+                      <i class="bi bi-graph-up text-warning me-3 mt-1"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-1">Average Registrations</h6>
+                      <p class="text-muted small mb-0">Average number of registrations per event</p>
+                    </div>
+                  </div>
+                  <div class="d-flex align-items-start mb-3">
+                    <div class="flex-shrink-0">
+                      <i class="bi bi-calendar-check text-info me-3 mt-1"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-1">Success Rate</h6>
+                      <p class="text-muted small mb-0">Percentage of successful event completions</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script th:inline="javascript">
+      const eventNamesData =  '[]';
+      const registrationCountsData = '[]';
+      const monthNamesData = '[]';
+      const monthlyRegistrationsData = '[]';
+
+      console.log('Event Names:', eventNamesData);
+      console.log('Registration Counts:', registrationCountsData);
+      console.log('Month Names:', monthNamesData);
+      console.log('Monthly Registrations:', monthlyRegistrationsData);
+      
+      let eventNames, registrationCounts, monthNames, monthlyRegistrations;
+      
+      try {
+        eventNames = JSON.parse(eventNamesData);
+        registrationCounts = JSON.parse(registrationCountsData);
+        monthNames = JSON.parse(monthNamesData);
+        monthlyRegistrations = JSON.parse(monthlyRegistrationsData);
+      } catch (e) {
+        console.error('Error parsing JSON data:', e);
+        eventNames = [];
+        registrationCounts = [];
+        monthNames = [];
+        monthlyRegistrations = [];
+      }
+
+      const eventCtx = document.getElementById('registrationsByEventChart').getContext('2d');
+      
+      if (eventNames.length > 0) {
+        new Chart(eventCtx, {
+          type: 'bar',
+          data: {
+            labels: eventNames,
+            datasets: [{
+              label: 'Registrations',
+              data: registrationCounts,
+              backgroundColor: 'rgba(37, 99, 235, 0.8)',
+              borderColor: 'rgba(37, 99, 235, 1)',
+              borderWidth: 1,
+              borderRadius: 4,
+              borderSkipped: false,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.1)'
+                }
+              },
+              x: {
+                grid: {
+                  display: false
+                }
+              }
+            }
+          }
+        });
+      } else {
+        eventCtx.canvas.style.display = 'none';
+      }
+
+      const monthCtx = document.getElementById('monthlyRegistrationsChart').getContext('2d');
+      
+      if (monthNames.length > 0) {
+        new Chart(monthCtx, {
+          type: 'line',
+          data: {
+            labels: monthNames,
+            datasets: [{
+              label: 'Monthly Registrations',
+              data: monthlyRegistrations,
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              borderColor: 'rgba(16, 185, 129, 1)',
+              borderWidth: 3,
+              fill: true,
+              tension: 0.4,
+              pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2,
+              pointRadius: 6,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.1)'
+                }
+              },
+              x: {
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.1)'
+                }
+              }
+            }
+          }
+        });
+      } else {
+        monthCtx.canvas.style.display = 'none';
+      }
+    </script>
+  </body>
+</html>
