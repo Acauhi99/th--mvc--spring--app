@@ -86,7 +86,7 @@
               <div style="position: relative; height: 300px;">
                 <canvas id="registrationsByEventChart"></canvas>
               </div>
-              <div th:if="${#lists.isEmpty(eventNamesJson) or eventNamesJson == '[]'}" class="text-center py-4">
+              <div th:if="${eventNamesJson == '[]'}" class="text-center py-4">
                 <i class="bi bi-info-circle text-muted"></i>
                 <p class="text-muted mb-0">No event data available</p>
               </div>
@@ -107,7 +107,7 @@
               <div style="position: relative; height: 300px;">
                 <canvas id="monthlyRegistrationsChart"></canvas>
               </div>
-              <div th:if="${#lists.isEmpty(monthNamesJson) or monthNamesJson == '[]'}" class="text-center py-4">
+              <div th:if="${monthNamesJson == '[]'}" class="text-center py-4">
                 <i class="bi bi-info-circle text-muted"></i>
                 <p class="text-muted mb-0">No monthly data available</p>
               </div>
@@ -179,16 +179,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script th:inline="javascript">
-      const eventNamesData =  '[]';
-      const registrationCountsData = '[]';
-      const monthNamesData = '[]';
-      const monthlyRegistrationsData = '[]';
-
-      console.log('Event Names:', eventNamesData);
-      console.log('Registration Counts:', registrationCountsData);
-      console.log('Month Names:', monthNamesData);
-      console.log('Monthly Registrations:', monthlyRegistrationsData);
+      // Get data from Thymeleaf with proper escaping
+      const eventNamesData = /*[[${eventNamesJson}]]*/ '[]';
+      const registrationCountsData = /*[[${registrationCountsJson}]]*/ '[]';
+      const monthNamesData = /*[[${monthNamesJson}]]*/ '[]';
+      const monthlyRegistrationsData = /*[[${monthlyRegistrationsJson}]]*/ '[]';
       
+      // Parse JSON data
       let eventNames, registrationCounts, monthNames, monthlyRegistrations;
       
       try {
@@ -196,6 +193,7 @@
         registrationCounts = JSON.parse(registrationCountsData);
         monthNames = JSON.parse(monthNamesData);
         monthlyRegistrations = JSON.parse(monthlyRegistrationsData);
+        
       } catch (e) {
         console.error('Error parsing JSON data:', e);
         eventNames = [];
@@ -204,7 +202,11 @@
         monthlyRegistrations = [];
       }
 
+      // Registrations by Event Chart
       const eventCtx = document.getElementById('registrationsByEventChart').getContext('2d');
+      
+      console.log('Event Names Length:', eventNames.length);
+      console.log('Creating Event Chart with data:', eventNames, registrationCounts);
       
       if (eventNames.length > 0) {
         new Chart(eventCtx, {
@@ -244,11 +246,16 @@
             }
           }
         });
+
       } else {
+
         eventCtx.canvas.style.display = 'none';
+        eventCtx.canvas.nextElementSibling.style.display = 'block';
       }
 
+      // Monthly Registrations Chart
       const monthCtx = document.getElementById('monthlyRegistrationsChart').getContext('2d');
+      
       
       if (monthNames.length > 0) {
         new Chart(monthCtx, {
@@ -292,8 +299,11 @@
             }
           }
         });
+
       } else {
+
         monthCtx.canvas.style.display = 'none';
+        monthCtx.canvas.nextElementSibling.style.display = 'block';
       }
     </script>
   </body>

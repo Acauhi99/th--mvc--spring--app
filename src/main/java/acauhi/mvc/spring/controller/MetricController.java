@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Controller
@@ -48,6 +50,7 @@ public class MetricController {
         model.addAttribute("totalEvents", totalEvents);
         model.addAttribute("totalRegistrations", totalRegistrations);
 
+        // Dados para gráfico de inscrições por evento
         List<Object[]> registrationsByEvent = registrationService.findRegistrationsCountByEventForOrganizer(organizerId);
 
         System.out.println("=== DEBUG METRICS ===");
@@ -76,11 +79,20 @@ public class MetricController {
         model.addAttribute("eventNamesJson", eventNamesJson.toString());
         model.addAttribute("registrationCountsJson", registrationCountsJson.toString());
 
-        LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(6);
+        // Dados para gráfico de inscrições por mês (último ano)
+        LocalDateTime oneYearAgo = LocalDateTime.now().minusYears(1);
         List<Object[]> registrationsByMonth = registrationService.findRegistrationsByMonthForOrganizer(
-                organizerId, sixMonthsAgo);
+                organizerId, oneYearAgo);
 
         System.out.println("Registrations by Month size: " + registrationsByMonth.size());
+        
+        // Criar mapa para facilitar o preenchimento dos dados
+        Map<Integer, Long> monthlyData = new HashMap<>();
+        for (Object[] data : registrationsByMonth) {
+            int month = ((Number) data[0]).intValue();
+            long count = ((Number) data[1]).longValue();
+            monthlyData.put(month, count);
+        }
         
         StringBuilder monthNamesJson = new StringBuilder("[");
         StringBuilder monthlyRegistrationsJson = new StringBuilder("[");
@@ -88,18 +100,23 @@ public class MetricController {
         String[] months = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", 
                           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
         
-        for (int i = 0; i < registrationsByMonth.size(); i++) {
-            Object[] data = registrationsByMonth.get(i);
-            System.out.println("Month data [" + i + "]: " + data[0] + " = " + data[1]);
+        // Começar do mês atual e voltar 12 meses
+        LocalDateTime currentMonth = LocalDateTime.now().withDayOfMonth(1);
+        for (int i = 0; i < 12; i++) {
+            LocalDateTime monthToShow = currentMonth.minusMonths(11 - i);
+            int monthNumber = monthToShow.getMonthValue();
             
             if (i > 0) {
                 monthNamesJson.append(",");
                 monthlyRegistrationsJson.append(",");
             }
-            int monthNumber = ((Number) data[0]).intValue();
+            
             monthNamesJson.append("\"").append(months[monthNumber - 1]).append("\"");
-            monthlyRegistrationsJson.append(data[1].toString());
+            monthlyRegistrationsJson.append(monthlyData.getOrDefault(monthNumber, 0L));
+            
+            System.out.println("Month " + months[monthNumber - 1] + ": " + monthlyData.getOrDefault(monthNumber, 0L));
         }
+        
         monthNamesJson.append("]");
         monthlyRegistrationsJson.append("]");
         
@@ -111,6 +128,8 @@ public class MetricController {
 
         System.out.println("Event Names JSON: " + eventNamesJson.toString());
         System.out.println("Registration Counts JSON: " + registrationCountsJson.toString());
+        System.out.println("Month Names JSON: " + monthNamesJson.toString());
+        System.out.println("Monthly Registrations JSON: " + monthlyRegistrationsJson.toString());
         System.out.println("=== END DEBUG ===");
 
         return "pages/metrics/view";

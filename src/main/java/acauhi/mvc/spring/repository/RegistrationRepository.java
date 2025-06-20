@@ -31,13 +31,13 @@ public interface RegistrationRepository extends JpaRepository<Registration, UUID
   // Métodos de análise para organizadores
   @Query("SELECT COUNT(r) FROM Registration r " +
       "JOIN r.event e " +
-      "WHERE e.organizer.id = :organizerId AND r.status = 'INSCRITO'")
+      "WHERE e.organizer.id = :organizerId")
   Long countTotalRegistrationsByOrganizerId(@Param("organizerId") UUID organizerId);
 
   @Query("SELECT e.name, COUNT(r) " +
       "FROM Registration r " +
       "JOIN r.event e " +
-      "WHERE e.organizer.id = :organizerId AND r.status = 'INSCRITO' " +
+      "WHERE e.organizer.id = :organizerId " +
       "GROUP BY e.id, e.name " +
       "ORDER BY COUNT(r) DESC")
   List<Object[]> findRegistrationsCountByEventForOrganizer(@Param("organizerId") UUID organizerId);
